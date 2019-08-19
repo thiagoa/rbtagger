@@ -36,8 +36,8 @@ definitions. If point is on `ModOne::ModTwo`, more specifically at
 ## Generating tags
 
 To generate `TAGS`, make sure the current buffer belongs to a Ruby
-project with a `Gemfile` and `git` as VCS, then call `M-x
-rbtagger-generate-tags`.
+project with a `Gemfile` and `git` as VCS, then call <kbd>M-x</kbd>
+`rbtagger-generate-tags`.
 
 The above command will:
 
@@ -63,7 +63,7 @@ $ echo .ruby_tags_commit_hash >> ~/.gitignore
 
 ### Troubleshooting
 
-`rbtagger-generate-tags` will create two hidden buffers:
+<kbd>M-x</kbd> `rbtagger-generate-tags` will create two hidden buffers:
 
 - The message log, `*rbtagger-log: PROJECT NAME*`, where you can see
   what is being indexed,
@@ -79,10 +79,10 @@ A message will also be displayed in the minibuffer (or the
 
 ## Looking up tags
 
-`M-x rbtagger-find-definitions` tries to find the best match for the
-symbol at point by computing a list of candidates ordered by
-specificity. It tries to follow Ruby's Constant lookup rules as
-closely as possible. Given the following Ruby module:
+<kbd>M-x</kbd> `rbtagger-find-definitions` tries to find the best
+match for the symbol at point by computing a list of candidates
+ordered by specificity. It tries to follow Ruby's Constant lookup
+rules as closely as possible. Given the following Ruby module:
 
 ```ruby
 module Tags
@@ -125,9 +125,9 @@ no prompts. Save them in `init.el`:
 
 ### Setting up a keyboard shortcut
 
-The classic Emacs shortcut for looking up tags is `M-.`, which calls
-`xref-find-definitions`.  I recommend overriding this shortcut with
-`rbtagger-find-definitions` in your favorite Ruby mode:
+The classic Emacs shortcut for looking up tags is <kbd>M-.</kbd>,
+which calls `xref-find-definitions`.  I recommend overriding this
+shortcut with `rbtagger-find-definitions` in your favorite Ruby mode:
 
 ```elisp
 ;; For enh-ruby-mode
@@ -139,8 +139,8 @@ The classic Emacs shortcut for looking up tags is `M-.`, which calls
   (define-key ruby-mode-map (kbd "M-.") 'rbtagger-find-definitions))
 ```
 
-For popping back to where you were before, the command is still `M-.`
-or `M-x xref-pop-marker-stack`.
+For popping back to where you were before, the command is still <kbd>M-.</kbd>
+or <kbd>M-x</kbd> `xref-pop-marker-stack`.
 
 ## Git hooks
 
@@ -248,10 +248,10 @@ $ emacs -Q -l rbtagger-test.el --batch -f ert-run-tests-batch-and-exit
 Through Emacs:
 
 1. Open `test/rbtagger-test.el`
-2. Run `M-x eval-buffer`. Side-effect warning: this will add MELPA to
+2. Run <kbd>M-x</kbd> `eval-buffer`. Side-effect warning: this will add MELPA to
    `package-archives`.
 3. Press `C-c C-r` to run all tests.
-4. To run a single test, press `M-x eval-expression` and type `(ert
+4. To run a single test, press <kbd>M-x</kbd> `eval-expression` and type `(ert
    "name-of-the-test")`. See `ert` docs for more options.
 
 ## License
