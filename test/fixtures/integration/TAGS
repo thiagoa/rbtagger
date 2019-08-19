@@ -1,0 +1,15 @@
+
+base.rb,45
+class BaseBase1,0
+  def self.callcall2,0
+
+root.rb,57
+module ActiveRecordActiveRecord1,0
+  def callcall2,0
+
+active_record/base.rb,95
+module ActiveRecordActiveRecord1,0
+  class BaseBase2,0
+  class BaseActiveRecord::Base2,0
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
