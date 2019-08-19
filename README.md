@@ -253,3 +253,9 @@ Through Emacs:
 3. Press `C-c C-r` to run all tests.
 4. To run a single test, press `M-x eval-expression` and type `(ert
    "name-of-the-test")`. See `ert` docs for more options.
+
+## License
+
+Copyright © 2019 Thiago Araújo Silva.
+
+Distributed under the GNU General Public License, version 3
