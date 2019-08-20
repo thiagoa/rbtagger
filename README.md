@@ -2,13 +2,15 @@
 
 [![Build Status](https://travis-ci.com/thiagoa/rbtagger.svg?branch=master)](https://travis-ci.org/thiagoa/rbtagger)
 
-> A text-based Ruby tag system for Emacs that works better than
+> A text-based Ruby tags system for Emacs that works better than
 > average
 
 RbTagger is an Emacs library based on ctags,
 [`ripper-tags`](https://github.com/lzap/gem-ripper-tags), and
 `xref.el`. It indexes your entire Ruby project along with gems and
-provides smarter than average tag lookup.
+provides smarter than average tag lookup.  It aims to provide
+context-aware, accurate tag lookup by parsing the current Ruby file
+and an easy-to-use tags solution that works out of the box.
 
 RbTagger is currently beta software extracted from my Emacs
 configuration.
@@ -17,7 +19,7 @@ configuration.
 
 - It indexes full projects along with gems;
 - It indexes full Ruby modules, thanks to `ripper-tags` extra options.
-- It has contextual tag lookup. RbTagger is aware of Ruby code and
+- It has contextual tags lookup. RbTagger is aware of Ruby code and
 will try to jump to the most specific occurrence for the symbol at
 point.
 - It takes into account the full Ruby module when looking for
