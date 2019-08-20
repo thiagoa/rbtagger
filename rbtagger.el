@@ -32,6 +32,7 @@
 
 (require 'ruby-mode)
 (require 'cl-macs)
+(require 'subr-x)
 
 (defconst rbtagger-module-regex "^[\s]*\\(class\\|module\\) \\([^\s<]+\\)"
   "The regex used to match Ruby modules.")
