@@ -135,7 +135,7 @@ shortcut with `rbtagger-find-definitions` in your favorite Ruby mode:
   (define-key enh-ruby-mode-map (kbd "M-.") 'rbtagger-find-definitions))
 
 ;; For ruby-mode
-(with-eval-after-load ruby-mode
+(with-eval-after-load 'ruby-mode
   (define-key ruby-mode-map (kbd "M-.") 'rbtagger-find-definitions))
 ```
 
