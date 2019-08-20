@@ -24,7 +24,7 @@ function index_main_project {
 
 function index_dir {
     ripper-tags --extra=q --recursive --emacs \
-                --exclude=.git $@ > /dev/null 2>&1
+                --exclude=.git $@ > /dev/null
 }
 
 function index_project_gems {
@@ -32,7 +32,7 @@ function index_project_gems {
 
     cd $project_dir
 
-    for gem_dir in $(bundle list --paths 2> /dev/null); do
+    for gem_dir in $(bundle list --paths); do
         if [[ "$?" -ne "0" ]]; then
             abort "Command to list gems failed. Bundler returned an error."
         fi
