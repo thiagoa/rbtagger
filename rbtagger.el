@@ -172,7 +172,7 @@ Takes PROJECT-NAME."
        (run-hook-with-args 'rbtagger-after-generate-tag-hook success ,project-name)
        (if success
            (message "Ruby tags successfully generated")
-         (message "ERROR: Ruby tags generation failed!")))))
+         (message "ERROR: Ruby tags generation failed! Is bundler able to run?")))))
 
 (provide 'rbtagger)
 ;;; rbtagger.el ends here
