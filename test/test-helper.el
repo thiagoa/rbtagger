@@ -85,7 +85,7 @@ Takes BODY."
   "Configure package archives for testing."
   (let ((melpa '("melpa" . "http://melpa.milkbox.net/packages/")))
     (if (boundp 'package-archives)
-        (add-to-list package-archives melpa)
+        (add-to-list 'package-archives melpa)
       (setq package-archives (list melpa))))
   (package-initialize)
   (package-refresh-contents)
