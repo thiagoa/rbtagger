@@ -35,25 +35,25 @@
 (require 'subr-x)
 
 (defconst rbtagger-module-regex "^[\s]*\\(class\\|module\\) \\([^\s<]+\\)"
-  "The regex used to match Ruby modules.")
+  "The regex to match Ruby modules.")
 
 (defcustom rbtagger-stdout-buffer "*rbtagger-log: %s*"
-  "The buffer name for the tags generate output log.
-To display the project name, include the %s formatting string."
+  "The buffer name for the `rbtagger-generate-tags` output log.
+You can include the project name with the %s format string."
   :type 'string
   :group 'rbtagger)
 
 (defcustom rbtagger-stderr-buffer "*rbtagger-error-log: %s*"
-  "The buffer name for tags generate error log.
-To display the project name, include the %s formatting string."
+  "The buffer name for the `rbtagger-generate-tags` error log.
+You can include the project name with the %s format string."
   :type 'string
   :group 'rbtagger)
 
 (defcustom rbtagger-generate-tags-bin (concat (file-name-directory load-file-name)
                                               "bin/ruby_index_tags")
-  "The full path to the script responsible for generating the TAGS file.
-The script must take an optional directory argument, otherwise it will
-use the current directory."
+  "The full path to the script that generates the TAGS file.
+The script should take a \"directory\" argument or use the
+current directory otherwise."
   :type 'string
   :group 'rbtagger)
 
@@ -63,12 +63,12 @@ use the current directory."
   :group 'rbtagger)
 
 (defun rbtagger-find-definitions ()
-  "Find definitions for the Ruby tag a point.
-This function calls `xref-find-definitions` with a list of tag
-candidates.  It reads the current Ruby buffer and tries to figure
-out the current nesting level to build the tag candidates.  It is
-assumed that your tags file was parsed with ripper-tags --emacs
-and --extra=q options."
+  "Find definitions for the Ruby symbol at point.
+This function reads the current Ruby buffer and builds a tag
+candidates list, then it loops through the list and calls
+`xref-find-definitions` on each candidate.  It is assumed that
+your tags file was parsed with ripper-tags --emacs and --extra=q
+options."
   (interactive)
   (let* ((tag (rbtagger-symbol-at-point))
          (top-level-constant-p (string-prefix-p "::" tag))
@@ -84,12 +84,12 @@ and --extra=q options."
     (if (not done) (error (concat "No definitions for " tag " found!")))))
 
 (defun rbtagger-symbol-at-point ()
-  "Figure out the Ruby symbol at point."
+  "Figure out Ruby symbol at point."
   (let ((tag (substring-no-properties (thing-at-point 'sexp))))
     (replace-regexp-in-string "^:\\([^:]+\\)" "\\1" tag)))
 
 (defun rbtagger-current-indent-level ()
-  "Return the indentation level depending on the current Ruby mode."
+  "Return indentation level according to Ruby mode."
   (if (eq major-mode 'enh-ruby-mode)
       enh-ruby-indent-level
     ruby-indent-level))
@@ -98,7 +98,7 @@ and --extra=q options."
   "Find Ruby modules until nesting level at point.
 This is a simple regex-based and indentation-based function to
 return a list of Ruby modules.  If point is under modules 'One'
-and 'Two', this function will return '(list \"One::Two\"
+and 'Two', for example, this function will return '(list \"One::Two\"
 \"One\")."
   (save-excursion
     (let ((line (line-number-at-pos))
@@ -140,7 +140,7 @@ and 'Two', this function will return '(list \"One::Two\"
 (defun rbtagger-generate-tags (project-dir &optional generate-tags-bin)
   "Generate Ruby tags for the current git project.
 Takes PROJECT-DIR and optionally GENERATE-TAGS-BIN.  If GENERATE_TAGS-BIN
-is not passed, it uses `rbtagger-generate-tags` instead."
+is not passed, it uses the `rbtagger-generate-tags` setting."
   (interactive (list (locate-dominating-file default-directory ".git")))
   (let* ((project-dir (expand-file-name (string-remove-suffix "/" project-dir)))
          (generate-tags-bin (or generate-tags-bin rbtagger-generate-tags-bin))
@@ -173,7 +173,7 @@ Takes PROJECT-NAME."
        (run-hook-with-args 'rbtagger-after-generate-tag-hook success ,project-name)
        (if success
            (message "Ruby tags successfully generated")
-         (message "ERROR: Ruby tags generation failed! Is bundler able to run?")))))
+         (message "ERROR: Ruby tags generation failed!")))))
 
 (provide 'rbtagger)
 ;;; rbtagger.el ends here
