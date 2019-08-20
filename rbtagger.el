@@ -1,20 +1,18 @@
-;;; rbtagger.el  --- Ruby tagging tools -*- lexical-binding: t; -*-
+;;; rbtagger.el --- Ruby tagging tools -*- lexical-binding: t; -*-
 
 ;; Copyright (C) 2019 Thiago Araújo Silva
-
+;;
 ;; Author: Thiago Araújo <thiagoaraujos@gmail.com>
+;; Maintainer: Thiago Araújo <thiagoaraujos@gmail.com>
 ;; URL: http://www.github.com/thiagoa/rbtagger
 ;; Version: 0.1
-;; Maintainer: Thiago Araújo <thiagoaraujos@gmail.com>
+;; Package-Requires: ((emacs "25"))
+;; Keywords: languages, tools
 
-;; This file is NOT part of GNU Emacs.
-
-;;; License:
-
-;; This program is free software; you can redistribute it and/or modify
+;; This program is free software: you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation; either version 3, or (at your option)
-;; any later version.
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -22,17 +20,28 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs; see the file COPYING.  If not, write to the
-;; Free Software Foundation, Inc., 51 Franklin Street, Fifth Floor,
-;; Boston, MA 02110-1301, USA.
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;; This file is not part of GNU Emacs.
 
 ;;; Commentary:
 
+;; RbTagger is an Emacs library based on ctags, ripper-tags, and
+;; xref.el.  It indexes your entire Ruby project along with gems and
+;; provides smarter than average tag lookup.
+
 ;;; Code:
 
-(require 'ruby-mode)
-(require 'cl-macs)
+(defgroup rbtagger nil
+  "ctags-based Emacs utility to index Ruby projects."
+  :prefix "rbtagger-"
+  :group 'applications
+  :link '(url-link :tag "GitHub" "https://github.com/thiagoa/rbtagger"))
+
 (require 'subr-x)
+(require 'seq)
+(require 'ruby-mode)
+(require 'enh-ruby-mode nil 'noerror)
 
 (defconst rbtagger-module-regex "^[\s]*\\(class\\|module\\) \\([^\s<]+\\)"
   "The regex to match Ruby modules.")
@@ -62,6 +71,7 @@ current directory otherwise."
   :type 'hook
   :group 'rbtagger)
 
+;;;###autoload
 (defun rbtagger-find-definitions ()
   "Find definitions for the Ruby symbol at point.
 This function reads the current Ruby buffer and builds a tag
@@ -90,7 +100,7 @@ options."
 
 (defun rbtagger-current-indent-level ()
   "Return indentation level according to Ruby mode."
-  (if (eq major-mode 'enh-ruby-mode)
+  (if (and (eq major-mode 'enh-ruby-mode))
       enh-ruby-indent-level
     ruby-indent-level))
 
@@ -104,7 +114,6 @@ and 'Two', for example, this function will return '(list \"One::Two\"
     (let ((line (line-number-at-pos))
           (indent-level (rbtagger-current-indent-level))
           (last-indent 0)
-          symbol
           modules
           nesting)
       (goto-char (point-min))
@@ -137,6 +146,18 @@ and 'Two', for example, this function will return '(list \"One::Two\"
                 (let ((module-name (cdr tuple)))
                   (string-join module-name "::"))) modules))))
 
+(defun rbtagger--sentinel (project-name)
+  "Macro to generate the sentinel to run after `rbtagger-generate-tags'.
+Takes PROJECT-NAME."
+  (lambda (process _msg)
+    (let ((success (and (memq (process-status process) '(exit signal))
+                        (eq (process-exit-status process) 0))))
+      (run-hook-with-args 'rbtagger-after-generate-tag-hook success project-name)
+      (if success
+          (message "Ruby tags successfully generated")
+        (message "ERROR: Ruby tags generation failed!")))))
+
+;;;###autoload
 (defun rbtagger-generate-tags (project-dir &optional generate-tags-bin)
   "Generate Ruby tags for the current git project.
 Takes PROJECT-DIR and optionally GENERATE-TAGS-BIN.  If GENERATE_TAGS-BIN
@@ -157,23 +178,13 @@ is not passed, it uses the `rbtagger-generate-tags` setting."
            (command (list (file-truename generate-tags-bin) project-dir))
            (stderr (get-buffer-create (format rbtagger-stderr-buffer project-name)))
            (sentinel (rbtagger--sentinel project-name)))
-      (mapc (lambda (b) (with-current-buffer b (erase-buffer))) (list buffer stderr))
+      (dolist (b (list buffer stderr))
+        (with-current-buffer b (erase-buffer)))
       (make-process :name process-name
                     :buffer buffer
                     :stderr stderr
                     :command command
                     :sentinel sentinel))))
-
-(defmacro rbtagger--sentinel (project-name)
-  "Macro to generate the sentinel to run after rbtagger-generate-tags.
-Takes PROJECT-NAME."
-  `(lambda (process msg)
-     (let ((success (and (memq (process-status process) '(exit signal))
-                         (eq (process-exit-status process) 0))))
-       (run-hook-with-args 'rbtagger-after-generate-tag-hook success ,project-name)
-       (if success
-           (message "Ruby tags successfully generated")
-         (message "ERROR: Ruby tags generation failed!")))))
 
 (provide 'rbtagger)
 ;;; rbtagger.el ends here
