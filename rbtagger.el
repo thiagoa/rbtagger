@@ -141,9 +141,9 @@ and 'Two', this function will return '(list \"One::Two\"
 Takes PROJECT-DIR and optionally GENERATE-TAGS-BIN.  If GENERATE_TAGS-BIN
 is not passed, it uses `rbtagger-generate-tags` instead."
   (interactive (list (locate-dominating-file default-directory ".git")))
-  (let ((project-dir (expand-file-name (string-remove-suffix "/" project-dir)))
-        (generate-tags-bin (or generate-tags-bin rbtagger-generate-tags-bin))
-        (generate-tags-bin (expand-file-name generate-tags-bin)))
+  (let* ((project-dir (expand-file-name (string-remove-suffix "/" project-dir)))
+         (generate-tags-bin (or generate-tags-bin rbtagger-generate-tags-bin))
+         (generate-tags-bin (expand-file-name generate-tags-bin)))
     (unless (file-directory-p project-dir)
       (error "Project directory could not be found"))
     (unless (file-exists-p generate-tags-bin)
