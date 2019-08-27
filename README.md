@@ -35,6 +35,17 @@ definitions. If point is on `ModOne::ModTwo`, more specifically at
    [exec-path-from-shell](https://github.com/purcell/exec-path-from-shell)
    package.
 
+## Installation
+
+This package is not yet available on MELPA. In the meantime, you can:
+
+1. Clone this repository
+2. Add the folder where you cloned this repository to `load-path`:
+    - `(add-to-list 'load-path "~/folder/where/i/cloned/rbtagger")`
+3. `(require 'rbtagger)`
+
+The above code snippets can be saved in `init.el`.
+
 ## Generating tags
 
 To generate `TAGS`, make sure the current buffer belongs to a Ruby
@@ -216,10 +227,10 @@ areas:
 
 ### Contextual tag lookup
 
-As you can see, contextual tag lookup isn't that efficient and there
-is room for improvement.  In my experience, it will find the tag
-instantaneously (with 200+ gems) most of the time, but sometimes it
-will freeze for about 1 second. The eventual performance hit is
+As you can see, contextual tag lookup isn't as efficient as it can be
+and there is room for improvement.  In my experience, it will find the
+tag instantaneously (with 200+ gems) most of the time, but sometimes
+it will freeze for about 1 second. The eventual performance hit is
 negligible for me, but any improvements on performance, better usage
 of `xref`, or the algorithm itself would be hugely appreciated.
 
@@ -229,9 +240,9 @@ Building up the candidates list is currently an indentation-based and
 regex-based algorithm that happens inside Emacs buffers. Ideally, it
 should work with static analysis but that would probably make the code
 more complex or add more dependencies. Being regex-based means it
-would not work properly when module declarations are not properly
-indented. I never found this to be a problem because all my Ruby files
-are indented, but again, any contributions on that front will be
+would not work properly without properly indented module
+declarations. I never found this to be a problem because all my Ruby
+files are indented, but again, any contributions on that front will be
 appreciated.
 
 ### What else?
