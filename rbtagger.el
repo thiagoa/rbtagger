@@ -37,26 +37,26 @@
 (require 'ruby-mode)
 (require 'enh-ruby-mode nil 'noerror)
 
+(defconst rbtagger-module-regex "^[\s]*\\(class\\|module\\) \\([^\s<]+\\)"
+  "The regex to match Ruby modules.")
+
+(defconst rbtagger-symbol-regex "\\(\\sw\\|\\s_\\|:\\)+"
+  "The regex to scan for Ruby symbols.")
+
 (defgroup rbtagger nil
   "ctags-based Emacs utility to index Ruby projects."
   :prefix "rbtagger-"
   :group 'applications
   :link '(url-link :tag "GitHub" "https://github.com/thiagoa/rbtagger"))
 
-(defconst rbtagger-module-regex "^[\s]*\\(class\\|module\\) \\([^\s<]+\\)"
-  "The regex to match Ruby modules.")
-
-(defvar rbtagger-symbol-regex "\\(\\sw\\|\\s_\\|:\\)+"
-  "The regex to scan for Ruby symbols.")
-
 (defcustom rbtagger-stdout-buffer "*rbtagger-log: %s*"
-  "The buffer name for the `rbtagger-generate-tags` output log.
+  "The buffer name for `rbtagger-generate-tags` output log.
 You can include the project name with the %s format string."
   :type 'string
   :group 'rbtagger)
 
 (defcustom rbtagger-stderr-buffer "*rbtagger-error-log: %s*"
-  "The buffer name for the `rbtagger-generate-tags` error log.
+  "The buffer name for `rbtagger-generate-tags` error log.
 You can include the project name with the %s format string."
   :type 'string
   :group 'rbtagger)
@@ -97,8 +97,8 @@ options."
     (if (not done) (error (concat "No definitions for " tag " found!")))))
 
 (defun rbtagger-symbol-at-point ()
-  "Figure out Ruby symbol at point.
-An easier way to do ths would be to use `symbol-at-point`, but
+  "Figure out Ruby symbol at point by scanning current buffer.
+An easier way to do this would be to use `symbol-at-point`, but
 there are differences between `ruby-mode` and `enh-ruby-mode`
 where one will return a full symbol like Foo::Bar and the other
 will return just Foo due to syntax table differences.  In
@@ -173,7 +173,7 @@ and 'Two', for example, this function will return '(list \"One::Two\"
                   (string-join module-name "::"))) modules))))
 
 (defun rbtagger--sentinel (project-name)
-  "Macro to generate the sentinel to run after `rbtagger-generate-tags'.
+  "Generate the sentinel to run after `rbtagger-generate-tags'.
 Takes PROJECT-NAME."
   (lambda (process _msg)
     (let ((success (and (memq (process-status process) '(exit signal))

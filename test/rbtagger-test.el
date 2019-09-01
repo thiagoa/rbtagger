@@ -133,6 +133,12 @@
    "my_method"
    (should (equal "my_method" (rbtagger-symbol-at-point)))))
 
+(ert-deftest rbtagger-symbol-at-point-method-call-with-args ()
+  (test-with-buffer-contents
+   "module Bat\n  Bar.another_method(1, 2, 3)\nend"
+   "another_method"
+   (should (equal "another_method" (rbtagger-symbol-at-point)))))
+
 (ert-deftest rbtagger-symbol-at-point-point-on-beginning-of-file-no-symbol ()
   (test-with-buffer-contents
    " Module"
