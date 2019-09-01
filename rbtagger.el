@@ -51,6 +51,14 @@ doesn't.  There are no use cases for these extra prefix
 characters, so we should be safe here.  See Info node `(elisp)
 Syntax Class Table'")
 
+(defvar enh-ruby-indent-level)
+
+(defvar rbtagger-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "M-.") 'rbtagger-find-definitions)
+    map)
+  "Keymap for function `rbtagger-mode'.")
+
 (defgroup rbtagger nil
   "ctags-based Emacs utility to index Ruby projects."
   :prefix "rbtagger-"
@@ -82,8 +90,6 @@ current directory otherwise."
   "Hooks to run after `rbtagger-generate-tags'."
   :type 'hook
   :group 'rbtagger)
-
-(defvar enh-ruby-indent-level)
 
 ;;;###autoload
 (defun rbtagger-find-definitions (symbol)
@@ -222,6 +228,11 @@ is not passed, it uses the `rbtagger-generate-tags' setting."
                     :stderr stderr
                     :command command
                     :sentinel sentinel))))
+
+(define-minor-mode rbtagger-mode
+  "Tag management for Ruby files."
+  :lighter " rbtagger"
+  :keymap rbtagger-mode-map)
 
 (provide 'rbtagger)
 ;;; rbtagger.el ends here
