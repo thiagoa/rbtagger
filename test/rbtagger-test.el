@@ -144,7 +144,7 @@
   (test-with-buffer-contents
    "module Bat\n  ::Top::Level.bar\nend"
    "Top"
-   (should (equal "::Top::Level" (rbtagger-symbol-at-point)))))
+   (should (equal "Top::Level" (rbtagger-symbol-at-point)))))
 
 (ert-deftest rbtagger-tag-lookup-accuracy ()
   (find-file "fixtures/integration/root.rb")

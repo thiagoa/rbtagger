@@ -122,7 +122,7 @@ will return just Foo due to syntax table differences.  In
         (when (not (eq symbol-start-point symbol-end-point))
           (setq tag (substring-no-properties
                      (buffer-substring symbol-start-point symbol-end-point)))
-          (replace-regexp-in-string "^:\\([^:]+\\)" "\\1" tag))))))
+          (replace-regexp-in-string "^::?\\([^:]+\\)" "\\1" tag))))))
 
 (defun rbtagger-current-indent-level ()
   "Return indentation level according to Ruby mode."
