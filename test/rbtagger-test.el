@@ -115,6 +115,31 @@
    "symb"
    (should (equal "symbol" (rbtagger-symbol-at-point)))))
 
+(ert-deftest rbtagger-symbol-at-point-symbol-on-beginning-of-file ()
+  (test-with-buffer-contents
+   "Module"
+   "Modul"
+   (should (equal "Module" (rbtagger-symbol-at-point)))))
+
+(ert-deftest rbtagger-symbol-at-point-point-one-char-after-symbol ()
+  (test-with-buffer-contents
+   "module MyMod"
+   "MyMod"
+   (should (equal "MyMod" (rbtagger-symbol-at-point)))))
+
+(ert-deftest rbtagger-symbol-at-point-method-call ()
+  (test-with-buffer-contents
+   "module Bat\n  Bar.my_method\nend"
+   "my_method"
+   (should (equal "my_method" (rbtagger-symbol-at-point)))))
+
+(ert-deftest rbtagger-symbol-at-point-point-on-beginning-of-file-no-symbol ()
+  (test-with-buffer-contents
+   " Module"
+   ""
+   (goto-char (point-min))
+   (should (equal nil (rbtagger-symbol-at-point)))))
+
 (ert-deftest rbtagger-symbol-at-point-top-level-constant ()
   (test-with-buffer-contents
    "module Bat\n  ::Top::Level.bar\nend"

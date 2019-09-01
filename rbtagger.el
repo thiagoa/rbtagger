@@ -32,19 +32,22 @@
 
 ;;; Code:
 
+(require 'subr-x)
+(require 'seq)
+(require 'ruby-mode)
+(require 'enh-ruby-mode nil 'noerror)
+
 (defgroup rbtagger nil
   "ctags-based Emacs utility to index Ruby projects."
   :prefix "rbtagger-"
   :group 'applications
   :link '(url-link :tag "GitHub" "https://github.com/thiagoa/rbtagger"))
 
-(require 'subr-x)
-(require 'seq)
-(require 'ruby-mode)
-(require 'enh-ruby-mode nil 'noerror)
-
 (defconst rbtagger-module-regex "^[\s]*\\(class\\|module\\) \\([^\s<]+\\)"
   "The regex to match Ruby modules.")
+
+(defvar rbtagger-symbol-regex "\\(\\sw\\|\\s_\\|:\\)+"
+  "The regex to scan for Ruby symbols.")
 
 (defcustom rbtagger-stdout-buffer "*rbtagger-log: %s*"
   "The buffer name for the `rbtagger-generate-tags` output log.
@@ -94,9 +97,32 @@ options."
     (if (not done) (error (concat "No definitions for " tag " found!")))))
 
 (defun rbtagger-symbol-at-point ()
-  "Figure out Ruby symbol at point."
-  (let ((tag (substring-no-properties (thing-at-point 'sexp))))
-    (replace-regexp-in-string "^:\\([^:]+\\)" "\\1" tag)))
+  "Figure out Ruby symbol at point.
+An easier way to do ths would be to use `symbol-at-point`, but
+there are differences between `ruby-mode` and `enh-ruby-mode`
+where one will return a full symbol like Foo::Bar and the other
+will return just Foo due to syntax table differences.  In
+`enh-ruby-mode` syntax table, colon is part of symbols but not in
+`ruby-mode`."
+  (cl-flet ((not-beginning-of-buffer-p () (not (eq (point) (point-min)))))
+    (save-excursion
+      (if (and (not-beginning-of-buffer-p)
+               (not (looking-at rbtagger-symbol-regex)))
+          (backward-char))
+      (while (and (not-beginning-of-buffer-p)
+                  (looking-at rbtagger-symbol-regex))
+        (backward-char))
+      (if (not-beginning-of-buffer-p) (forward-char))
+      (let ((symbol-start-point (point))
+            symbol-end-point
+            tag)
+        (while (looking-at rbtagger-symbol-regex)
+          (forward-char))
+        (setq symbol-end-point (point))
+        (when (not (eq symbol-start-point symbol-end-point))
+          (setq tag (substring-no-properties
+                     (buffer-substring symbol-start-point symbol-end-point)))
+          (replace-regexp-in-string "^:\\([^:]+\\)" "\\1" tag))))))
 
 (defun rbtagger-current-indent-level ()
   "Return indentation level according to Ruby mode."
