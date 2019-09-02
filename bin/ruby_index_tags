@@ -1,60 +1,62 @@
 #!/usr/bin/env bash
 set -e
 
-# Global variables
 project_dir=${1:-.}
 gemfile="${project_dir}/Gemfile"
 temp_tags_file="${project_dir}/TAGS.$$" # Suffix with PID to make it unique
 final_tags_file="${project_dir}/TAGS"
 
-trap "/bin/rm -f $temp_tags_file" EXIT
+trap '/bin/rm -f $temp_tags_file' EXIT
 
 function abort {
     local message=$1
 
-    echo $message > /dev/stderr
+    echo "$message" > /dev/stderr
     exit 1
 }
 
 function index_main_project {
     local temp_tags_file=$1
 
-    index_dir --tag-file $temp_tags_file $project_dir
+    index_dir --tag-file "$temp_tags_file" "$project_dir"
 }
 
 function index_dir {
     ripper-tags --extra=q --recursive --emacs \
-                --exclude=.git $@ > /dev/null
+                --exclude=.git "$@" > /dev/null
 }
 
 function index_project_gems {
     local temp_tags_file=$1
+    local gem_list
 
-    cd $project_dir
+    cd "$project_dir"
 
-    for gem_dir in $(bundle list --paths); do
-        if [[ "$?" -ne "0" ]]; then
-            abort "Command to list gems failed. Bundler returned an error."
-        fi
+    if ! gem_list=$(bundle list --paths); then
+        abort "Command to list gems failed. Bundler returned an error."
+    fi
 
-        index_gem $gem_dir $temp_tags_file
+    for gem_dir in $gem_list; do
+        index_gem "$gem_dir" "$temp_tags_file"
     done
 }
 
 function index_gem {
     local gem_dir=$1
     local temp_tags_file=$2
-    local gem_name="$(basename $gem_dir)"
+    local gem_name
     local gem_tags_file="${gem_dir}/TAGS"
 
-    if [[ ! -f $gem_tags_file ]] || should_index_git_dir $gem_dir; then
+    gem_name="$(basename "$gem_dir")"
+
+    if [[ ! -f $gem_tags_file ]] || should_index_git_dir "$gem_dir"; then
         echo "Indexing ${gem_name}..."
-        index_dir --tag-file $gem_tags_file $gem_dir
+        index_dir --tag-file "$gem_tags_file" "$gem_dir"
     else
         echo "${gem_name} already indexed"
     fi
 
-    cat $gem_tags_file >> $temp_tags_file
+    cat "$gem_tags_file" >> "$temp_tags_file"
 }
 
 function should_index_git_dir {
@@ -66,30 +68,32 @@ function should_index_git_dir {
     fi
 
     local commit_hash_file="${gem_dir}/.ruby_tags_commit_hash"
-    local current_commit_hash=$(git -C $gem_dir rev-parse HEAD)
+    local current_commit_hash
+
+    current_commit_hash=$(git -C "$gem_dir" rev-parse HEAD)
 
     if [[ -f $commit_hash_file ]]; then
-        last_commit_hash="$(cat $commit_hash_file)"
+        last_commit_hash="$(cat "$commit_hash_file")"
     fi
 
-    if [[ $last_commit_hash != $current_commit_hash ]]; then
-        echo $current_commit_hash > $commit_hash_file
+    if [[ $last_commit_hash != "$current_commit_hash" ]]; then
+        echo "$current_commit_hash" > "$commit_hash_file"
         return 0
     else
         return 1
     fi
 }
 
-if [[ ! -x $(which gem) ]]; then
+if ! command -v gem > /dev/null; then
     abort "Can't find gem command. Ruby doesn't seem to be installed."
 fi
 
-if [[ ! -x $(which ripper-tags) ]]; then
+if ! command -v ripper-tags > /dev/null; then
     echo "Installing ripper-tags gem..."
     gem install ripper-tags
 fi
 
-if [[ ! -x $(which bundler) ]]; then
+if ! command -v bundler > /dev/null; then
     # We don't automatically install bundler because the user might
     # prefer a specific version.
     abort "Can't find bundler. Make sure to gem install bundler."
@@ -101,10 +105,10 @@ fi
 
 echo "Indexing main project..."
 
-index_main_project $temp_tags_file
-index_project_gems $temp_tags_file
+index_main_project "$temp_tags_file"
+index_project_gems "$temp_tags_file"
 
-mv $temp_tags_file $final_tags_file
+mv "$temp_tags_file" "$final_tags_file"
 
 echo
 echo "Tags generation complete! File: ${final_tags_file}"

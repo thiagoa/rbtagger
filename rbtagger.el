@@ -4,7 +4,7 @@
 ;;
 ;; Author: Thiago Araújo <thiagoaraujos@gmail.com>
 ;; Maintainer: Thiago Araújo <thiagoaraujos@gmail.com>
-;; URL: http://www.github.com/thiagoa/rbtagger
+;; URL: https://www.github.com/thiagoa/rbtagger
 ;; Version: 0.1
 ;; Package-Requires: ((emacs "25"))
 ;; Keywords: languages, tools
@@ -20,7 +20,7 @@
 ;; GNU General Public License for more details.
 
 ;; You should have received a copy of the GNU General Public License
-;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+;; along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 ;; This file is not part of GNU Emacs.
 
@@ -50,13 +50,13 @@
   :link '(url-link :tag "GitHub" "https://github.com/thiagoa/rbtagger"))
 
 (defcustom rbtagger-stdout-buffer "*rbtagger-log: %s*"
-  "The buffer name for `rbtagger-generate-tags` output log.
+  "The buffer name for `rbtagger-generate-tags' output log.
 You can include the project name with the %s format string."
   :type 'string
   :group 'rbtagger)
 
 (defcustom rbtagger-stderr-buffer "*rbtagger-error-log: %s*"
-  "The buffer name for `rbtagger-generate-tags` error log.
+  "The buffer name for `rbtagger-generate-tags' error log.
 You can include the project name with the %s format string."
   :type 'string
   :group 'rbtagger)
@@ -74,12 +74,14 @@ current directory otherwise."
   :type 'hook
   :group 'rbtagger)
 
+(defvar enh-ruby-indent-level)
+
 ;;;###autoload
 (defun rbtagger-find-definitions ()
   "Find definitions for the Ruby symbol at point.
 This function reads the current Ruby buffer and builds a tag
 candidates list, then it loops through the list and calls
-`xref-find-definitions` on each candidate.  It is assumed that
+`xref-find-definitions' on each candidate.  It is assumed that
 your tags file was parsed with ripper-tags --emacs and --extra=q
 options."
   (interactive)
@@ -98,12 +100,12 @@ options."
 
 (defun rbtagger-symbol-at-point ()
   "Figure out Ruby symbol at point by scanning current buffer.
-An easier way to do this would be to use `symbol-at-point`, but
-there are differences between `ruby-mode` and `enh-ruby-mode`
+An easier way to do this would be to use `symbol-at-point', but
+there are differences between `ruby-mode' and `enh-ruby-mode'
 where one will return a full symbol like Foo::Bar and the other
 will return just Foo due to syntax table differences.  In
-`enh-ruby-mode` syntax table, colon is part of symbols but not in
-`ruby-mode`."
+`enh-ruby-mode' syntax table, colon is part of symbols but not in
+`ruby-mode'."
   (cl-flet ((not-beginning-of-buffer-p () (not (eq (point) (point-min)))))
     (save-excursion
       (if (and (not-beginning-of-buffer-p)
@@ -119,7 +121,7 @@ will return just Foo due to syntax table differences.  In
         (while (looking-at rbtagger-symbol-regex)
           (forward-char))
         (setq symbol-end-point (point))
-        (when (not (eq symbol-start-point symbol-end-point))
+        (unless (eq symbol-start-point symbol-end-point)
           (setq tag (substring-no-properties
                      (buffer-substring symbol-start-point symbol-end-point)))
           (replace-regexp-in-string "^::?\\([^:]+\\)" "\\1" tag))))))
@@ -137,7 +139,7 @@ return a list of Ruby modules.  If point is under modules 'One'
 and 'Two', for example, this function will return '(list \"One::Two\"
 \"One\")."
   (save-excursion
-    (let ((line (line-number-at-pos))
+    (let ((start-pos (line-beginning-position))
           (indent-level (rbtagger-current-indent-level))
           (last-indent 0)
           modules
@@ -149,7 +151,7 @@ and 'Two', for example, this function will return '(list \"One::Two\"
                                      (let ((module-indent (car tuple)))
                                        (>= module-indent current-indent)))
                                    modules)))
-        (while (not (eq (line-number-at-pos) line))
+        (while (not (eq (point) start-pos))
           (let ((found-module (re-search-forward rbtagger-module-regex
                                                  (line-end-position)
                                                  t)))
@@ -187,7 +189,7 @@ Takes PROJECT-NAME."
 (defun rbtagger-generate-tags (project-dir &optional generate-tags-bin)
   "Generate Ruby tags for the current git project.
 Takes PROJECT-DIR and optionally GENERATE-TAGS-BIN.  If GENERATE_TAGS-BIN
-is not passed, it uses the `rbtagger-generate-tags` setting."
+is not passed, it uses the `rbtagger-generate-tags' setting."
   (interactive (list (locate-dominating-file default-directory ".git")))
   (let* ((project-dir (expand-file-name (string-remove-suffix "/" project-dir)))
          (generate-tags-bin (or generate-tags-bin rbtagger-generate-tags-bin))
