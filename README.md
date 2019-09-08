@@ -59,6 +59,13 @@ After that, you can install RbTagger with the following command:
 
 <kbd>M-x</kbd> `package-install` <kbd>[RET]</kbd> `rbtagger` <kbd>[RET]</kbd>
 
+I recommend installing the
+[`projectile`](https://github.com/bbatsov/projectile) package (also
+available on MELPA) and enabling `(projectile-mode)` globally to get
+goodies such as automatic visiting `TAGS` on `projectile-find-file`
+and similar commands, otherwise you'll have to visit the `TAGS` file
+manually.
+
 ## Generating tags
 
 To generate `TAGS`, make sure the current buffer belongs to a Ruby

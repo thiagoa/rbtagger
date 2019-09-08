@@ -61,7 +61,8 @@ You can include the project name with the %s format string."
   :type 'string
   :group 'rbtagger)
 
-(defcustom rbtagger-generate-tags-bin (concat (file-name-directory load-file-name)
+(defcustom rbtagger-generate-tags-bin (concat (file-name-directory
+                                               (or load-file-name (buffer-file-name)))
                                               "bin/ruby_index_tags")
   "The full path to the script that generates the TAGS file.
 The script should take a \"directory\" argument or use the
@@ -191,11 +192,13 @@ Takes PROJECT-NAME."
 Takes PROJECT-DIR and optionally GENERATE-TAGS-BIN.  If GENERATE_TAGS-BIN
 is not passed, it uses the `rbtagger-generate-tags' setting."
   (interactive (list (locate-dominating-file default-directory ".git")))
-  (let* ((project-dir (expand-file-name (string-remove-suffix "/" project-dir)))
+  (let* ((project-dir (or project-dir
+                          (error "Project git directory could not be found")))
+         (project-dir (expand-file-name (string-remove-suffix "/" project-dir)))
          (generate-tags-bin (or generate-tags-bin rbtagger-generate-tags-bin))
          (generate-tags-bin (expand-file-name generate-tags-bin)))
     (unless (file-directory-p project-dir)
-      (error "Project directory could not be found"))
+      (error "Project git directory could not be found"))
     (unless (file-exists-p generate-tags-bin)
       (error "Binary to generate Ruby tags could not be found"))
     (unless (file-executable-p generate-tags-bin)

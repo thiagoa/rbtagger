@@ -176,6 +176,11 @@
    (rbtagger-generate-tags "non_existing_directory"
                            "fixtures/bin/ruby_index_tags_success")))
 
+(ert-deftest rbtagger-generate-tags-nil-project-dir ()
+  (should-error-with-message
+   "could not be found"
+   (rbtagger-generate-tags nil "fixtures/bin/ruby_index_tags_success")))
+
 (ert-deftest rbtagger-generate-tags-invalid-binary-path ()
   (should-error-with-message
    "could not be found"
