@@ -37,14 +37,27 @@ definitions. If point is on `ModOne::ModTwo`, more specifically at
 
 ## Installation
 
-This package is not yet available on MELPA. In the meantime, you can:
+RbTagger is available on the two major `package.el` community
+maintained repos - [MELPA Stable](http://stable.melpa.org) and
+[MELPA](http://melpa.org). If you want to use MELPA stable,
+add the following repository to `package-archives`:
 
-1. Clone this repository
-2. Add the folder where you cloned this repository to `load-path`:
-    - `(add-to-list 'load-path "~/folder/where/i/cloned/rbtagger")`
-3. `(require 'rbtagger)`
+```elisp
+;; This code snippet should be saved to init.el
+(add-to-list 'package-archives
+             '("melpa-stable" . "https://stable.melpa.org/packages/") t)
+```
 
-The above code snippets can be saved in `init.el`.
+If you want to stay on the bleeding edge:
+
+```elisp
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.milkbox.net/packages/") t)
+```
+
+After that, you can install RbTagger with the following command:
+
+<kbd>M-x</kbd> `package-install` <kbd>[RET]</kbd> `rbtagger` <kbd>[RET]</kbd>
 
 ## Generating tags
 
