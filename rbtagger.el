@@ -61,7 +61,8 @@ You can include the project name with the %s format string."
   :type 'string
   :group 'rbtagger)
 
-(defcustom rbtagger-generate-tags-bin (concat (file-name-directory load-file-name)
+(defcustom rbtagger-generate-tags-bin (concat (file-name-directory
+                                               (or load-file-name (buffer-file-name)))
                                               "bin/ruby_index_tags")
   "The full path to the script that generates the TAGS file.
 The script should take a \"directory\" argument or use the
