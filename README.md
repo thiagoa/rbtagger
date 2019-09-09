@@ -2,8 +2,7 @@
 
 [![Build Status](https://travis-ci.com/thiagoa/rbtagger.svg?branch=master)](https://travis-ci.org/thiagoa/rbtagger)
 
-> A text-based Ruby tags system for Emacs that works better than
-> average
+> A text-based Ruby tags system for Emacs
 
 RbTagger is an Emacs library based on ctags,
 [`ripper-tags`](https://github.com/lzap/gem-ripper-tags), and
@@ -30,7 +29,7 @@ definitions. If point is on `ModOne::ModTwo`, more specifically at
 ## Prerequisites
 
 1. Emacs 25 or greater.
-2. The `ruby`, `gem`, and `bundler` commands must readily accessible
+2. The `ruby`, `gem`, and `bundler` commands must be readily accessible
    from within Emacs. If you're on macOS, I recommend installing the
    [exec-path-from-shell](https://github.com/purcell/exec-path-from-shell)
    package.
@@ -58,13 +57,6 @@ If you want to stay on the bleeding edge:
 After that, you can install RbTagger with the following command:
 
 <kbd>M-x</kbd> `package-install` <kbd>[RET]</kbd> `rbtagger` <kbd>[RET]</kbd>
-
-I recommend installing the
-[`projectile`](https://github.com/bbatsov/projectile) package (also
-available on MELPA) and enabling `(projectile-mode)` globally to get
-goodies such as automatic visiting `TAGS` on `projectile-find-file`
-and similar commands, otherwise you'll have to visit the `TAGS` file
-manually.
 
 ## Generating tags
 
@@ -112,6 +104,19 @@ A message will also be displayed in the minibuffer (or the
 
 ## Looking up tags
 
+### Visiting tags tables
+
+I recommend installing the
+[`projectile`](https://github.com/bbatsov/projectile) package (also
+available on MELPA) and enabling
+[`(projectile-mode)`](https://projectile.readthedocs.io/en/latest/installation/)
+globally in your init.el to visit a project's `TAGS` file
+automatically when switching buffers (on Emacs' `find-file-hook`,)
+otherwise you'll have to manually manage the active tags table with
+<kbd>M-x</kbd> `visit-tags-table`.
+
+### Finding definitions
+
 <kbd>M-x</kbd> `rbtagger-find-definitions` tries to find the best
 match for the symbol at point by computing a list of candidates
 ordered by specificity. It tries to follow Ruby's Constant lookup
@@ -152,7 +157,11 @@ I recommend the following settings for a smoother tags experience with
 no prompts. Save them in `init.el`:
 
 ```elisp
+;; Always start a new tags list (do not accumulate a list of
+;; tags) to keep up with the convention of one TAGS per project.
 (setq tags-add-tables nil)
+
+;; Reread TAGS without querying if it has changed
 (setq tags-revert-without-query 1)
 ```
 
@@ -178,7 +187,7 @@ or <kbd>M-x</kbd> `xref-pop-marker-stack`.
 ## Git hooks
 
 It is possible to automate tags generation with the help of
-`emacsclient` when commiting or running other git operations. Use the
+`emacsclient` when committing or running other git operations. Use the
 following shell script as the body of the `post-commit`, `post-merge`,
 and `post-rewrite` git hooks:
 
