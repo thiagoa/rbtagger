@@ -32,7 +32,7 @@
 (load-file "test-helper.el")
 (load-file "../rbtagger.el")
 
-(configure-test-dependencies)
+(if noninteractive (configure-test-dependencies))
 
 (local-set-key (kbd "C-c C-r") #'run-all-tests)
 

@@ -278,23 +278,24 @@ appreciated.
 
 You are welcome to contribute with anything. Please send PRs!
 
-## Running the tests
+## Running tests
 
 Through the command line in batch mode:
 
 ```bash
-$ cd test
-$ emacs -Q -l rbtagger-test.el --batch -f ert-run-tests-batch-and-exit
+$ make test
 ```
 
 Through Emacs:
 
 1. Open `test/rbtagger-test.el`
-2. Run <kbd>M-x</kbd> `eval-buffer`. Side-effect warning: this will add MELPA to
-   `package-archives`.
+2. Run <kbd>M-x</kbd> `eval-buffer`. Side-effect warning: this will add MELPA to `package-archives` and install dependencies.
 3. Press `C-c C-r` to run all tests.
 4. To run a single test, press <kbd>M-x</kbd> `eval-expression` and type `(ert
    "name-of-the-test")`. See `ert` docs for more options.
+
+The `make` command with no arguments will compile `rbtagger.el` and
+run `checkdoc` over it. Any warnings will make the command fail.
 
 ## License
 

@@ -83,18 +83,18 @@ Takes BODY."
 
 (defun configure-test-dependencies ()
   "Configure package archives for testing."
-  (let ((melpa '("melpa" . "http://melpa.milkbox.net/packages/")))
-    (if (boundp 'package-archives)
-        (add-to-list 'package-archives melpa)
-      (setq package-archives (list melpa))))
-  (package-initialize)
-  (package-refresh-contents)
-  (package-install 'ert-async)
-  (require 'ert-async))
+  (unless (featurep 'ert-async)
+    (let ((melpa '("melpa" . "http://melpa.milkbox.net/packages/")))
+      (if (boundp 'package-archives)
+          (add-to-list 'package-archives melpa)
+        (setq package-archives (list melpa))))
+    (package-initialize)
+    (package-refresh-contents)
+    (package-install 'ert-async)
+    (require 'ert-async)))
 
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars)
 ;; End:
 
-(provide 'test-helper)
 ;;; test-helper.el ends here

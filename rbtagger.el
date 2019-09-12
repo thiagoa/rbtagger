@@ -102,11 +102,11 @@ options."
 (defun rbtagger-symbol-at-point ()
   "Figure out Ruby symbol at point by scanning current buffer.
 An easier way to do this would be to use `symbol-at-point', but
-there are differences between `ruby-mode' and `enh-ruby-mode'
-where one will return a full symbol like Foo::Bar and the other
-will return just Foo due to syntax table differences.  In
-`enh-ruby-mode' syntax table, colon is part of symbols but not in
-`ruby-mode'."
+there are differences between the command `ruby-mode' and
+`enh-ruby-mode' where one will return a full symbol like Foo::Bar
+and the other will return just Foo due to syntax table
+differences.  In `enh-ruby-mode' syntax table, colon is part of
+symbols but not in the command `ruby-mode'."
   (cl-flet ((not-beginning-of-buffer-p () (not (eq (point) (point-min)))))
     (save-excursion
       (if (and (not-beginning-of-buffer-p)
