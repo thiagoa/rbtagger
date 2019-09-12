@@ -18,4 +18,4 @@ before_install:
   - wget 'https://raw.githubusercontent.com/flycheck/emacs-travis/master/emacs-travis.mk'
   - make -f emacs-travis.mk install_emacs
 script:
-  - cd test && emacs -Q -l rbtagger-test.el --batch -f ert-run-tests-batch-and-exit
+  - make
