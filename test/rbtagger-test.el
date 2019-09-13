@@ -144,7 +144,7 @@
    " Module"
    ""
    (goto-char (point-min))
-   (should (equal nil (rbtagger-symbol-at-point)))))
+   (should (equal "" (rbtagger-symbol-at-point)))))
 
 (ert-deftest rbtagger-symbol-at-point-top-level-constant ()
   (test-with-buffer-contents

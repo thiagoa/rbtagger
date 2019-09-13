@@ -40,8 +40,16 @@
 (defconst rbtagger-module-regex "^[\s]*\\(class\\|module\\) \\([^\s<]+\\)"
   "The regex to match Ruby modules.")
 
-(defconst rbtagger-symbol-regex "\\(\\sw\\|\\s_\\|:\\)+"
-  "The regex to scan for Ruby symbols.")
+(defconst rbtagger-symbol-syntax-chars "w_'"
+  "The syntax chars to find Ruby symbols.
+Used as argument to `skip-syntax-forward' and
+`skip-syntax-backward'.  w is for word constituents; _ is for
+symbol constituents; ' is for expression prefixes.  These chars
+work for both `ruby-mode' and `enh-ruby-mode', although the
+former considers @ and $ as prefix characters and the latter
+doesn't.  There are no use cases for these extra prefix
+characters, so we should be safe here.  See Info node `(elisp)
+Syntax Class Table'")
 
 (defgroup rbtagger nil
   "ctags-based Emacs utility to index Ruby projects."
@@ -108,24 +116,15 @@ and the other will return just Foo due to syntax table
 differences.  In `enh-ruby-mode' syntax table, colon is part of
 symbols but not in the command `ruby-mode'."
   (cl-flet ((not-beginning-of-buffer-p () (not (eq (point) (point-min)))))
-    (save-excursion
-      (if (and (not-beginning-of-buffer-p)
-               (not (looking-at rbtagger-symbol-regex)))
-          (backward-char))
-      (while (and (not-beginning-of-buffer-p)
-                  (looking-at rbtagger-symbol-regex))
-        (backward-char))
-      (if (not-beginning-of-buffer-p) (forward-char))
-      (let ((symbol-start-point (point))
-            symbol-end-point
-            tag)
-        (while (looking-at rbtagger-symbol-regex)
-          (forward-char))
+    (let (symbol-start-point symbol-end-point tag)
+      (save-excursion
+        (skip-syntax-backward rbtagger-symbol-syntax-chars)
+        (setq symbol-start-point (point))
+        (skip-syntax-forward rbtagger-symbol-syntax-chars)
         (setq symbol-end-point (point))
-        (unless (eq symbol-start-point symbol-end-point)
-          (setq tag (substring-no-properties
-                     (buffer-substring symbol-start-point symbol-end-point)))
-          (replace-regexp-in-string "^::?\\([^:]+\\)" "\\1" tag))))))
+        (setq tag (substring-no-properties
+                   (buffer-substring symbol-start-point symbol-end-point)))
+        (replace-regexp-in-string "^::?\\([^:]+\\)" "\\1" tag)))))
 
 (defun rbtagger-current-indent-level ()
   "Return indentation level according to Ruby mode."
