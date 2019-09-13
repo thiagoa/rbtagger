@@ -33,6 +33,9 @@
 (require 'subr-x)
 (require 'seq)
 
+(defconst rbtagger-test-dependencies '(ert-async with-simulated-input)
+  "These dependencies are only required to run the tests.")
+
 (defun run-all-tests ()
   "Run all test in an idempotent way."
   (interactive)
@@ -84,14 +87,15 @@ Takes BODY."
 (defun configure-test-dependencies ()
   "Configure package archives for testing."
   (unless (featurep 'ert-async)
-    (let ((melpa '("melpa" . "http://melpa.milkbox.net/packages/")))
+    (let ((melpa '("melpa" . "http://stable.melpa.org/packages/")))
       (if (boundp 'package-archives)
           (add-to-list 'package-archives melpa)
         (setq package-archives (list melpa))))
     (package-initialize)
     (package-refresh-contents)
-    (package-install 'ert-async)
-    (require 'ert-async)))
+    (dolist (dependency rbtagger-test-dependencies)
+      (package-install dependency)
+      (require dependency))))
 
 ;; Local Variables:
 ;; byte-compile-warnings: (not free-vars)
