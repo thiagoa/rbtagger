@@ -86,26 +86,33 @@ current directory otherwise."
 (defvar enh-ruby-indent-level)
 
 ;;;###autoload
-(defun rbtagger-find-definitions ()
-  "Find definitions for the Ruby symbol at point.
+(defun rbtagger-find-definitions (symbol)
+  "Find definitions for the Ruby SYMBOL at point.
 This function reads the current Ruby buffer and builds a tag
 candidates list, then it loops through the list and calls
 `xref-find-definitions' on each candidate.  It is assumed that
 your tags file was parsed with ripper-tags --emacs and --extra=q
 options."
-  (interactive)
-  (let* ((tag (rbtagger-symbol-at-point))
-         (top-level-constant-p (string-prefix-p "::" tag))
-         (tag (replace-regexp-in-string "^::" "" tag))
+  (interactive
+   (let ((symbol (rbtagger-symbol-at-point)))
+     (when (string= symbol "")
+       (setq symbol (completing-read "Find definitions of: "
+                                     (xref-backend-identifier-completion-table 'etags)
+                                     nil nil nil
+                                     'xref--read-identifier-history))
+       (if (string= symbol "") (error "Please, specify a symbol!")))
+     (list symbol)))
+  (let* ((top-level-constant-p (string-prefix-p "::" symbol))
+         (symbol (replace-regexp-in-string "^::" "" symbol))
          (candidates (if top-level-constant-p () (rbtagger-find-candidates)))
-         (candidates (mapcar (lambda (c) (concat c "::" tag)) candidates))
-         (candidates (append candidates (list tag)))
+         (candidates (mapcar (lambda (c) (concat c "::" symbol)) candidates))
+         (candidates (append candidates (list symbol)))
          (done nil))
     (while (and (not done) candidates)
       (ignore-errors
         (xref-find-definitions (pop candidates))
         (setq done t)))
-    (if (not done) (error (concat "No definitions for " tag " found!")))))
+    (if (not done) (error (concat "No definitions for " symbol " found!")))))
 
 (defun rbtagger-symbol-at-point ()
   "Figure out Ruby symbol at point by scanning current buffer.

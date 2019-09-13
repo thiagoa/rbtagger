@@ -152,16 +152,52 @@
    "Top"
    (should (equal "Top::Level" (rbtagger-symbol-at-point)))))
 
-(ert-deftest rbtagger-tag-lookup-accuracy ()
+;; xref-find-definitions would present a list of two tags to choose
+;; from: Base and ActiveRecord::Base, while rbtagger jumps straight to
+;; ActiveRecord::Base
+(ert-deftest rbtagger-find-definitions-lookup-accuracy ()
   (find-file "fixtures/integration/root.rb")
   (visit-tags-table "TAGS")
+  (goto-char (point-min))
   (search-forward "Base")
   (backward-word)
   (call-interactively 'rbtagger-find-definitions)
   (should (string-suffix-p "active_record/base.rb" buffer-file-name))
   (should (looking-at "  class Base")))
 
-(ert-deftest rbtagger-without-rbtagger-tag-lookup-is-not-accurate ()
+(ert-deftest rbtagger-find-definitions-when-point-is-on-non-symbol-then-types-in-existing-symbol ()
+  (find-file "fixtures/integration/root.rb")
+  (visit-tags-table "TAGS")
+  (goto-char (point-min))
+  (search-forward "def")
+  (beginning-of-line)
+  (with-simulated-input "ActiveRecord::Base RET"
+    (call-interactively 'rbtagger-find-definitions))
+  (should (string-suffix-p "active_record/base.rb" buffer-file-name))
+  (should (looking-at "  class Base")))
+
+(ert-deftest rbtagger-find-definitions-when-point-is-on-non-symbol-then-types-in-nonexisting-symbol ()
+  (find-file "fixtures/integration/root.rb")
+  (visit-tags-table "TAGS")
+  (goto-char (point-min))
+  (search-forward "def")
+  (beginning-of-line)
+  (should-error-with-message
+   "No definitions for Bananas found"
+   (with-simulated-input "Bananas RET"
+     (call-interactively 'rbtagger-find-definitions))))
+
+(ert-deftest rbtagger-find-definitions-when-point-is-on-non-symbol-then-types-in-empty-symbol ()
+  (find-file "fixtures/integration/root.rb")
+  (visit-tags-table "TAGS")
+  (goto-char (point-min))
+  (search-forward "def")
+  (beginning-of-line)
+  (should-error-with-message
+   "Please, specify a symbol!"
+   (with-simulated-input "RET" (call-interactively 'rbtagger-find-definitions))))
+
+(ert-deftest rbtagger-without-rbtaggers-tag-lookup-is-not-accurate ()
   (find-file "fixtures/integration/root.rb")
   (visit-tags-table "TAGS")
   (search-forward "Base")
