@@ -29,10 +29,11 @@
 
 ;;; Code:
 
-(load-file "test-helper.el")
-(load-file "../rbtagger.el")
+;; More verbose than load-file but prints no messages
+(load (expand-file-name "test-helper.el") nil t)
+(load (expand-file-name "../rbtagger.el") nil t)
 
-(if noninteractive (configure-test-dependencies))
+(install-test-deps '(ert-async with-simulated-input))
 
 (local-set-key (kbd "C-c C-r") #'run-all-tests)
 
