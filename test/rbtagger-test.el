@@ -280,5 +280,4 @@
    "fixtures/../fixtures"
    "fixtures/bin/../bin/ruby_index_tags_echo_args"))
 
-(provide 'rbtagger-test)
 ;;; rbtagger-test.el ends here
