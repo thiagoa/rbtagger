@@ -155,13 +155,14 @@
 ;; xref-find-definitions would present a list of two tags to choose
 ;; from: Base and ActiveRecord::Base, while rbtagger jumps straight to
 ;; ActiveRecord::Base
-(ert-deftest rbtagger-find-definitions-lookup-accuracy ()
+(ert-deftest rbtagger-find-definitions-lookup-accuracy-with-minor-mode-enabled ()
   (find-file "fixtures/integration/root.rb")
+  (rbtagger-mode)
   (visit-tags-table "TAGS")
   (goto-char (point-min))
   (search-forward "Base")
   (backward-word)
-  (call-interactively 'rbtagger-find-definitions)
+  (execute-kbd-macro (kbd "M-."))
   (should (string-suffix-p "active_record/base.rb" buffer-file-name))
   (should (looking-at "  class Base")))
 

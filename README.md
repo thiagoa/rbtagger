@@ -34,7 +34,9 @@ definitions. If point is on `ModOne::ModTwo`, more specifically at
    [exec-path-from-shell](https://github.com/purcell/exec-path-from-shell)
    package.
 
-## Installation
+## Quickstart
+
+### Installation
 
 RbTagger is available on the two major `package.el` community
 maintained repos - [MELPA Stable](http://stable.melpa.org) and
@@ -57,6 +59,36 @@ If you want to stay on the bleeding edge:
 After that, you can install RbTagger with the following command:
 
 <kbd>M-x</kbd> `package-install` <kbd>[RET]</kbd> `rbtagger` <kbd>[RET]</kbd>
+
+### Basic usage
+
+Use the following code in init.el to enable `rbtagger-mode` in all
+Ruby buffers:
+
+```elisp
+;; For ruby-mode
+(add-hook 'ruby-mode (rbtagger-mode))
+
+;; For enh-ruby-mode
+(add-hook 'enh-ruby-mode (rbtagger-mode))
+```
+
+You can generate tags for the current Ruby project with <kbd>M-x</kbd>
+`rbtagger-generate-tags`. I strongly recommend setting up [git
+hooks](#git-hooks) for a better experience and to trigger this command
+manually less often.
+
+After enabling the minor mode, you can find definitions for the symbol
+at point with <kbd>M-.</kbd>, which is a shortcut for <kbd>M-x</kbd>
+`rbtagger-find-definitions`. The above keybinding replaces Emacs'
+keybinding to `xref-find-definitions`.
+
+For popping back to where you were before, the command is still
+<kbd>M-.</kbd> or <kbd>M-x</kbd> `xref-pop-marker-stack`, which is a
+default `xref` command.
+
+I strongly recommend reading up this guide for more details on how to
+best use this package.
 
 ## Generating tags
 
@@ -117,8 +149,9 @@ otherwise you'll have to manually manage the active tags table with
 
 ### Finding definitions
 
-<kbd>M-x</kbd> `rbtagger-find-definitions` tries to find the best
-match for the symbol at point by computing a list of candidates
+<kbd>M-x</kbd> `rbtagger-find-definitions` or <kbd>M-.</kbd> (provided
+that [`rbtagger-mode` is enabled](#basic-usage)) tries to find the
+best match for the symbol at point by computing a list of candidates
 ordered by specificity. It tries to follow Ruby's Constant lookup
 rules as closely as possible. Given the following Ruby module:
 
@@ -164,25 +197,6 @@ no prompts. Save them in `init.el`:
 ;; Reread TAGS without querying if it has changed
 (setq tags-revert-without-query 1)
 ```
-
-### Setting up a keyboard shortcut
-
-The classic Emacs shortcut for looking up tags is <kbd>M-.</kbd>,
-which calls `xref-find-definitions`.  I recommend overriding this
-shortcut with `rbtagger-find-definitions` in your favorite Ruby mode:
-
-```elisp
-;; For enh-ruby-mode
-(with-eval-after-load 'enh-ruby-mode
-  (define-key enh-ruby-mode-map (kbd "M-.") 'rbtagger-find-definitions))
-
-;; For ruby-mode
-(with-eval-after-load 'ruby-mode
-  (define-key ruby-mode-map (kbd "M-.") 'rbtagger-find-definitions))
-```
-
-For popping back to where you were before, the command is still <kbd>M-.</kbd>
-or <kbd>M-x</kbd> `xref-pop-marker-stack`.
 
 ## Git hooks
 
