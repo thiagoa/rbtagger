@@ -37,9 +37,9 @@ WARNING: Incurs side-effects."
   (package-initialize)
   (dolist (dep deps) (require dep nil 'noerror))
   (cl-reduce (lambda (acc dep)
-               (and (not (featurep dep)) acc))
+               (or (not (featurep dep)) acc))
              deps
-             :initial-value t))
+             :initial-value nil))
 
 (defun install-test-deps (deps)
   "Install test DEPS.
