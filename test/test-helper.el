@@ -4,7 +4,6 @@
 
 ;; Author: Thiago Araújo <thiagoaraujos@gmail.com>
 ;; Maintainer: Thiago Araújo <thiagoaraujos@gmail.com>
-;; Version: 0.0.1
 
 ;; This file is NOT part of GNU Emacs.
 
@@ -33,8 +32,7 @@
 (require 'subr-x)
 (require 'seq)
 
-(defconst rbtagger-test-dependencies '(ert-async with-simulated-input)
-  "These dependencies are only required to run the tests.")
+(load (expand-file-name "support/test-deps-helper.el") nil t)
 
 (defun run-all-tests ()
   "Run all test in an idempotent way."
@@ -83,22 +81,5 @@ Takes BODY."
       'rbtagger-after-generate-tag-hook
       (lambda ,@body
         (setq rbtagger-after-generate-tag-hook hooks-backup)))))
-
-(defun configure-test-dependencies ()
-  "Configure package archives for testing."
-  (unless (featurep 'ert-async)
-    (let ((melpa '("melpa" . "http://stable.melpa.org/packages/")))
-      (if (boundp 'package-archives)
-          (add-to-list 'package-archives melpa)
-        (setq package-archives (list melpa))))
-    (package-initialize)
-    (package-refresh-contents)
-    (dolist (dependency rbtagger-test-dependencies)
-      (package-install dependency)
-      (require dependency))))
-
-;; Local Variables:
-;; byte-compile-warnings: (not free-vars)
-;; End:
 
 ;;; test-helper.el ends here
