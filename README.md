@@ -79,10 +79,10 @@ been generated. If the gem is a local git project, it will only be
 reindexed if the commit hash has changed from the previous indexing
 operation.
 
-Make sure to add the following files to your global `.gitignore`:
+Make sure to add the following patterns to your global `.gitignore`:
 
 ```bash
-$ echo TAGS >> ~/.gitignore
+$ echo "TAGS*" >> ~/.gitignore
 $ echo .ruby_tags_commit_hash >> ~/.gitignore
 ```
 
