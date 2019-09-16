@@ -229,10 +229,12 @@ is not passed, it uses the `rbtagger-generate-tags' setting."
                     :command command
                     :sentinel sentinel))))
 
+;;;###autoload
 (define-minor-mode rbtagger-mode
   "Tag management for Ruby files."
   :lighter " rbtagger"
-  :keymap rbtagger-mode-map)
+  :keymap rbtagger-mode-map
+  :group 'rbtagger)
 
 (provide 'rbtagger)
 ;;; rbtagger.el ends here
