@@ -128,16 +128,15 @@ there are differences between the command `ruby-mode' and
 and the other will return just Foo due to syntax table
 differences.  In `enh-ruby-mode' syntax table, colon is part of
 symbols but not in the command `ruby-mode'."
-  (cl-flet ((not-beginning-of-buffer-p () (not (eq (point) (point-min)))))
-    (let (symbol-start-point symbol-end-point tag)
-      (save-excursion
-        (skip-syntax-backward rbtagger-symbol-syntax-chars)
-        (setq symbol-start-point (point))
-        (skip-syntax-forward rbtagger-symbol-syntax-chars)
-        (setq symbol-end-point (point))
-        (setq tag (substring-no-properties
-                   (buffer-substring symbol-start-point symbol-end-point)))
-        (replace-regexp-in-string "^::?\\([^:]+\\)" "\\1" tag)))))
+  (let (symbol-start-point symbol-end-point tag)
+    (save-excursion
+      (skip-syntax-backward rbtagger-symbol-syntax-chars)
+      (setq symbol-start-point (point))
+      (skip-syntax-forward rbtagger-symbol-syntax-chars)
+      (setq symbol-end-point (point))
+      (setq tag (substring-no-properties
+                 (buffer-substring symbol-start-point symbol-end-point)))
+      (replace-regexp-in-string "^::?\\([^:]+\\)" "\\1" tag))))
 
 (defun rbtagger-current-indent-level ()
   "Return indentation level according to Ruby mode."
