@@ -133,7 +133,10 @@ symbols but not in the command `ruby-mode'."
       (skip-syntax-backward rbtagger-symbol-syntax-chars)
       (setq symbol-start-point (point))
       (skip-syntax-forward rbtagger-symbol-syntax-chars)
-      (setq symbol-end-point (point))
+      (setq symbol-end-point
+            (if (equal ?! (char-after (point)))
+                (1+ (point)) ;; for enh-ruby-mode, which doesn't recognize "!"
+              (point)))
       (setq tag (substring-no-properties
                  (buffer-substring symbol-start-point symbol-end-point)))
       (replace-regexp-in-string "^::?\\([^:]+\\)" "\\1" tag))))

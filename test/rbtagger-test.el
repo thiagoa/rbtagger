@@ -33,125 +33,113 @@
 (load (expand-file-name "test-helper.el") nil t)
 (load (expand-file-name "../rbtagger.el") nil t)
 
-(install-test-deps '(ert-async with-simulated-input))
+(install-test-deps '(ert-async with-simulated-input enh-ruby-mode))
+
+(load (expand-file-name "support/workarounds.el"))
 
 (local-set-key (kbd "C-c C-r") #'run-all-tests)
 
-(ert-deftest rbtagger-find-candidates-zero-level-nesting ()
-  (test-with-file-contents
-   "unit/general_example.rb"
-   "zero_level_nesting"
-   (should (equal () (rbtagger-find-candidates)))))
+(rbtagger-file-deftest rbtagger-find-candidates-zero-level-nesting ()
+  "unit/general_example.rb"
+  "zero_level_nesting"
+  (should (equal () (rbtagger-find-candidates))))
 
-(ert-deftest rbtagger-find-candidates-one-level-nesting ()
-  (test-with-file-contents
-   "unit/general_example.rb"
-   "one_level_nesting"
-   (should (equal '("One") (rbtagger-find-candidates)))))
+(rbtagger-file-deftest rbtagger-find-candidates-first-two-level-nesting ()
+  "unit/general_example.rb"
+  "first_two_level_nesting"
+  (should (equal '("One::Two" "One") (rbtagger-find-candidates))))
 
-(ert-deftest rbtagger-find-candidates-first-two-level-nesting ()
-  (test-with-file-contents
-   "unit/general_example.rb"
-   "first_two_level_nesting"
-   (should (equal '("One::Two" "One") (rbtagger-find-candidates)))))
+(rbtagger-file-deftest rbtagger-find-candidates-second-two-level-nesting ()
+  "unit/general_example.rb"
+  "second_two_level_nesting"
+  (should (equal '("One::Three" "One") (rbtagger-find-candidates))))
 
-(ert-deftest rbtagger-find-candidates-second-two-level-nesting ()
-  (test-with-file-contents
-   "unit/general_example.rb"
-   "second_two_level_nesting"
-   (should (equal '("One::Three" "One") (rbtagger-find-candidates)))))
+(rbtagger-file-deftest rbtagger-find-candidates-three-level-nesting ()
+  "unit/general_example.rb"
+  "three_level_nesting"
+  (should (equal '("One::Three::Four" "One::Three" "One")
+                 (rbtagger-find-candidates))))
 
-(ert-deftest rbtagger-find-candidates-three-level-nesting ()
-  (test-with-file-contents
-   "unit/general_example.rb"
-   "three_level_nesting"
-   (should (equal '("One::Three::Four" "One::Three" "One")
-                  (rbtagger-find-candidates)))))
+(rbtagger-file-deftest rbtagger-find-candidates-second-one-level-nesting ()
+  "unit/general_example.rb"
+  "second_one_level_nesting"
+  (should (equal '("Five") (rbtagger-find-candidates))))
 
-(ert-deftest rbtagger-find-candidates-second-one-level-nesting ()
-  (test-with-file-contents
-   "unit/general_example.rb"
-   "second_one_level_nesting"
-   (should (equal '("Five") (rbtagger-find-candidates)))))
+(rbtagger-file-deftest rbtagger-find-candidates-third-two-level-nesting ()
+  "unit/general_example.rb"
+  "third_two_level_nesting"
+  (should (equal '("Five::Six" "Five") (rbtagger-find-candidates))))
 
-(ert-deftest rbtagger-find-candidates-third-two-level-nesting ()
-  (test-with-file-contents
-   "unit/general_example.rb"
-   "third_two_level_nesting"
-   (should (equal '("Five::Six" "Five") (rbtagger-find-candidates)))))
+(rbtagger-file-deftest rbtagger-find-candidates-module-on-first-of-line ()
+  "unit/module_on_first_line.rb"
+  "module One"
+  (should (equal '() (rbtagger-find-candidates))))
 
-(ert-deftest rbtagger-find-candidates-module-on-first-of-line ()
-  (test-with-file-contents
-   "unit/module_on_first_line.rb"
-   "module One"
-   (should (equal '() (rbtagger-find-candidates)))))
+(rbtagger-file-deftest rbtagger-find-candidates-module-on-first-of-line-one-level-nesting ()
+  "unit/module_on_first_line.rb"
+  "inside_module"
+  (should (equal (rbtagger-find-candidates) '("One"))))
 
-(ert-deftest rbtagger-find-candidates-module-on-first-of-line-one-level-nesting ()
-  (test-with-file-contents
-   "unit/module_on_first_line.rb"
-   "inside_module"
-   (should (equal (rbtagger-find-candidates) '("One")))))
+(rbtagger-file-deftest rbtagger-find-candidates-random-code-mistaken-as-module ()
+  "unit/edge_case_file.rb"
+  "where_the_error_could_happen"
+  (should (equal (rbtagger-find-candidates) '("Foo::Bar" "Foo"))))
 
-(ert-deftest rbtagger-find-candidates-random-code-mistaken-as-module ()
-  (test-with-file-contents
-   "unit/edge_case_file.rb"
-   "where_the_error_could_happen"
-   (should (equal (rbtagger-find-candidates) '("Foo::Bar" "Foo")))))
+(rbtagger-file-deftest rbtagger-find-candidates-ignore-singleton-class ()
+  "unit/edge_case_file.rb"
+  "singleton_class"
+  (should (equal (rbtagger-find-candidates) '("Bar"))))
 
-(ert-deftest rbtagger-find-candidates-ignore-singleton-class ()
-  (test-with-file-contents
-   "unit/edge_case_file.rb"
-   "singleton_class"
-   (should (equal (rbtagger-find-candidates) '("Bar")))))
+(rbtagger-buffer-deftest rbtagger-symbol-at-point-constant ()
+  "module Bat\n  Foobar::Baz.something\nend"
+  "Foo"
+  (should (equal "Foobar::Baz" (rbtagger-symbol-at-point))))
 
-(ert-deftest rbtagger-symbol-at-point-constant ()
-  (test-with-buffer-contents
-   "module Bat\n  Foobar::Baz.something\nend"
-   "Foo"
-   (should (equal "Foobar::Baz" (rbtagger-symbol-at-point)))))
+(rbtagger-buffer-deftest rbtagger-symbol-at-point-symbol ()
+  "module Bat\n  foo(:symbol)\nend"
+  "symb"
+  (should (equal "symbol" (rbtagger-symbol-at-point))))
 
-(ert-deftest rbtagger-symbol-at-point-symbol ()
-  (test-with-buffer-contents
-   "module Bat\n  foo(:symbol)\nend"
-   "symb"
-   (should (equal "symbol" (rbtagger-symbol-at-point)))))
+(rbtagger-buffer-deftest rbtagger-symbol-at-point-symbol-on-beginning-of-file ()
+  "Module"
+  "Modul"
+  (should (equal "Module" (rbtagger-symbol-at-point))))
 
-(ert-deftest rbtagger-symbol-at-point-symbol-on-beginning-of-file ()
-  (test-with-buffer-contents
-   "Module"
-   "Modul"
-   (should (equal "Module" (rbtagger-symbol-at-point)))))
+(rbtagger-buffer-deftest rbtagger-symbol-at-point-point-one-char-after-symbol ()
+  "module MyMod"
+  "MyMod"
+  (should (equal "MyMod" (rbtagger-symbol-at-point))))
 
-(ert-deftest rbtagger-symbol-at-point-point-one-char-after-symbol ()
-  (test-with-buffer-contents
-   "module MyMod"
-   "MyMod"
-   (should (equal "MyMod" (rbtagger-symbol-at-point)))))
+(rbtagger-buffer-deftest rbtagger-symbol-at-point-method-call ()
+  "module Bat\n  Bar.my_method\nend"
+  "my_method"
+  (should (equal "my_method" (rbtagger-symbol-at-point))))
 
-(ert-deftest rbtagger-symbol-at-point-method-call ()
-  (test-with-buffer-contents
-   "module Bat\n  Bar.my_method\nend"
-   "my_method"
-   (should (equal "my_method" (rbtagger-symbol-at-point)))))
+(rbtagger-buffer-deftest rbtagger-symbol-at-point-method-call-with-bang ()
+  "module Bat\n  Bar.my_method!\nend"
+  "my_method"
+  (should (equal "my_method!" (rbtagger-symbol-at-point))))
 
-(ert-deftest rbtagger-symbol-at-point-method-call-with-args ()
-  (test-with-buffer-contents
-   "module Bat\n  Bar.another_method(1, 2, 3)\nend"
-   "another_method"
-   (should (equal "another_method" (rbtagger-symbol-at-point)))))
+(rbtagger-buffer-deftest rbtagger-symbol-at-point-predicate-method-call ()
+  "module Bat\n  Bar.works?\nend"
+  "work"
+  (should (equal "works?" (rbtagger-symbol-at-point))))
 
-(ert-deftest rbtagger-symbol-at-point-point-on-beginning-of-file-no-symbol ()
-  (test-with-buffer-contents
-   " Module"
-   ""
-   (goto-char (point-min))
-   (should (equal "" (rbtagger-symbol-at-point)))))
+(rbtagger-buffer-deftest rbtagger-symbol-at-point-method-call-with-args ()
+  "module Bat\n  Bar.another_method(1, 2, 3)\nend"
+  "another_method"
+  (should (equal "another_method" (rbtagger-symbol-at-point))))
 
-(ert-deftest rbtagger-symbol-at-point-top-level-constant ()
-  (test-with-buffer-contents
-   "module Bat\n  ::Top::Level.bar\nend"
-   "Top"
-   (should (equal "Top::Level" (rbtagger-symbol-at-point)))))
+(rbtagger-buffer-deftest rbtagger-symbol-at-point-point-on-beginning-of-file-no-symbol ()
+  " Module"
+  ""
+  (goto-char (point-min))
+  (should (equal "" (rbtagger-symbol-at-point))))
+
+(rbtagger-buffer-deftest rbtagger-symbol-at-point-top-level-constant ()
+  "module Bat\n  ::Top::Level.bar\nend"
+  "Top"
+  (should (equal "Top::Level" (rbtagger-symbol-at-point))))
 
 ;; xref-find-definitions would present a list of two tags to choose
 ;; from: Base and ActiveRecord::Base, while rbtagger jumps straight to
