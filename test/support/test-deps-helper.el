@@ -30,6 +30,9 @@
 
 (require 'package)
 (require 'cl-seq)
+(require 'gnutls)
+
+(add-to-list 'gnutls-trustfiles "/etc/ssl/cert.pem")
 
 (defun install-test-deps-p (deps)
   "Determine if test DEPS should be installed.

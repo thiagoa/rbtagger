@@ -45,7 +45,12 @@ function index_gem {
     local gem_dir=$1
     local temp_tags_file=$2
     local gem_name
-    local gem_tags_file="${gem_dir}/TAGS"
+
+    if is_git_dir "$gem_dir"; then
+      local gem_tags_file="${gem_dir}/.TAGS"
+    else
+      local gem_tags_file="${gem_dir}/TAGS"
+    fi
 
     gem_name="$(basename "$gem_dir")"
 
@@ -59,12 +64,20 @@ function index_gem {
     cat "$gem_tags_file" >> "$temp_tags_file"
 }
 
-function should_index_git_dir {
+function is_git_dir {
     local gem_dir=$1
     local git_dir="${gem_dir}/.git"
 
     if [[ ! -f $git_dir ]] && [[ ! -d $git_dir ]]; then
         return 1
+    fi
+}
+
+function should_index_git_dir {
+    local gem_dir=$1
+
+    if ! is_git_dir "$gem_dir"; then
+      return 1
     fi
 
     local commit_hash_file="${gem_dir}/.ruby_tags_commit_hash"
