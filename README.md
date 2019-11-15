@@ -83,7 +83,10 @@ at point with <kbd>M-.</kbd>, which is a shortcut for <kbd>M-x</kbd>
 `rbtagger-find-definitions`. The above keybinding replaces Emacs'
 keybinding to `xref-find-definitions`.
 
-For popping back to where you were before, the command is still
+You can also force displaying a prompt of tags to choose from with the
+universal argument: `C-u M-.`.
+
+To pop back to where you were before, the command is still
 <kbd>M-.</kbd> or <kbd>M-x</kbd> `xref-pop-marker-stack`, which is a
 default `xref` command.
 

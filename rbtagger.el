@@ -101,11 +101,16 @@ your tags file was parsed with ripper-tags --emacs and --extra=q
 options."
   (interactive
    (let ((symbol (rbtagger-symbol-at-point)))
-     (when (string= symbol "")
-       (setq symbol (completing-read "Find definitions of: "
+     (when (or current-prefix-arg (string= symbol ""))
+       (setq symbol (completing-read (concat "Find definitions of"
+                                             (if (string= symbol "")
+                                                 ""
+                                               (concat " (" symbol ")"))
+                                             ": ")
                                      (xref-backend-identifier-completion-table 'etags)
                                      nil nil nil
-                                     'xref--read-identifier-history))
+                                     'xref--read-identifier-history
+                                     symbol))
        (if (string= symbol "") (error "Please, specify a symbol!")))
      (list symbol)))
   (let* ((top-level-constant-p (string-prefix-p "::" symbol))
