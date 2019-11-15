@@ -6,7 +6,7 @@
 ;; Maintainer: Thiago Araújo <thiagoaraujos@gmail.com>
 ;; URL: https://www.github.com/thiagoa/rbtagger
 ;; Version: 0.1
-;; Package-Requires: ((emacs "25"))
+;; Package-Requires: ((emacs "25.1"))
 ;; Keywords: languages, tools
 
 ;; This program is free software: you can redistribute it and/or modify

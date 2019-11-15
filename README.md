@@ -118,6 +118,7 @@ Make sure to add the following patterns to your global `.gitignore`:
 
 ```bash
 $ echo "TAGS*" >> ~/.gitignore
+$ echo ".TAGS" >> ~/.gitignore
 $ echo .ruby_tags_commit_hash >> ~/.gitignore
 ```
 
