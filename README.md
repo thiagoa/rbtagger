@@ -87,8 +87,20 @@ You can also force displaying a prompt of tags to choose from with the
 universal argument: `C-u M-.`.
 
 To pop back to where you were before, the command is still
-<kbd>M-.</kbd> or <kbd>M-x</kbd> `xref-pop-marker-stack`, which is a
+<kbd>M-,</kbd> or <kbd>M-x</kbd> `xref-pop-marker-stack`, which is a
 default `xref` command.
+
+Here is a list of commands:
+
+| Keybinding             | Description                                                |
+|------------------------|------------------------------------------------------------|
+| <kbd>M-.</kbd>         | `rbtagger-find-definitions`                                |
+| <kbd>C-u M-.</kbd>     | `rbtagger-find-definitions` (displays prompt)              |
+| <kbd>C-c C-.</kbd>     | `rbtagger-find-definitions-other-window`                   |
+| <kbd>C-u C-c C-.</kbd> | `rbtagger-find-definitions-other-window` (displays prompt) |
+| <kbd>C-c M-.</kbd>     | `rbtagger-find-definitions-other-frame`                    |
+| <kbd>C-u C-c M-.</kbd> | `rbtagger-find-definitions-other-frame` (displays prompt)  |
+| <kbd>M-,</kbd>         | `xref-pop-marker-stack`                                    |
 
 I strongly recommend reading up this guide for more details on how to
 best use this package.
