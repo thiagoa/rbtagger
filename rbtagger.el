@@ -56,6 +56,8 @@ Syntax Class Table'")
 (defvar rbtagger-mode-map
   (let ((map (make-sparse-keymap)))
     (define-key map (kbd "M-.") 'rbtagger-find-definitions)
+    (define-key map (kbd "C-c C-.") 'rbtagger-find-definitions-other-window)
+    (define-key map (kbd "C-c M-.") 'rbtagger-find-definitions-other-frame)
     map)
   "Keymap for function `rbtagger-mode'.")
 
@@ -100,19 +102,47 @@ candidates list, then it loops through the list and calls
 your tags file was parsed with ripper-tags --emacs and --extra=q
 options."
   (interactive
-   (let ((symbol (rbtagger-symbol-at-point)))
-     (when (or current-prefix-arg (string= symbol ""))
-       (setq symbol (completing-read (concat "Find definitions of"
-                                             (if (string= symbol "")
-                                                 ""
-                                               (concat " (" symbol ")"))
-                                             ": ")
-                                     (xref-backend-identifier-completion-table 'etags)
-                                     nil nil nil
-                                     'xref--read-identifier-history
-                                     symbol))
-       (if (string= symbol "") (error "Please, specify a symbol!")))
-     (list symbol)))
+   (rbtagger--interactive-get-symbol current-prefix-arg))
+  (rbtagger--find-definitions symbol :same-window))
+
+;;;###autoload
+(defun rbtagger-find-definitions-other-window (symbol)
+  "Find definitions for the Ruby SYMBOL at point in another window.
+See `rbtagger-find-definitions'."
+  (interactive
+   (rbtagger--interactive-get-symbol current-prefix-arg))
+  (rbtagger--find-definitions symbol :other-window))
+
+;;;###autoload
+(defun rbtagger-find-definitions-other-frame (symbol)
+  "Find definitions for the Ruby SYMBOL at point in another frame.
+See `rbtagger-find-definitions'."
+  (interactive
+   (rbtagger--interactive-get-symbol current-prefix-arg))
+  (rbtagger--find-definitions symbol :other-frame))
+
+(defun rbtagger--interactive-get-symbol (choose-symbol)
+  "Process the symbol to use for interactive functions.
+If CHOOSE-SYMBOL is passed, lets the user pick from an
+interactive list of xref symbols.  Otherwise, uses the symbol at
+point."
+  (let ((symbol (rbtagger-symbol-at-point)))
+    (when (or choose-symbol (string= symbol ""))
+      (setq symbol (completing-read (concat "Find definitions of"
+                                            (if (string= symbol "")
+                                                ""
+                                              (concat " (" symbol ")"))
+                                            ": ")
+                                    (xref-backend-identifier-completion-table 'etags)
+                                    nil nil nil
+                                    'xref--read-identifier-history
+                                    symbol))
+      (if (string= symbol "") (error "Please, specify a symbol!")))
+    (list symbol)))
+
+(defun rbtagger--find-definitions (symbol where-to-open)
+  "The function to actually find the definitions.
+Takes SYMBOL and WHERE-TO-OPEN, which can be :same-window, :other-window or :other-frame."
   (let* ((top-level-constant-p (string-prefix-p "::" symbol))
          (symbol (replace-regexp-in-string "^::" "" symbol))
          (candidates (if top-level-constant-p () (rbtagger-find-candidates)))
@@ -121,7 +151,14 @@ options."
          (done nil))
     (while (and (not done) candidates)
       (ignore-errors
-        (xref-find-definitions (pop candidates))
+        (let ((candidate (pop candidates)))
+          (pcase where-to-open
+            (:same-window
+             (xref-find-definitions candidate))
+            (:other-window
+             (xref-find-definitions-other-window candidate))
+            (:other-frame
+             (xref-find-definitions-other-frame candidate))))
         (setq done t)))
     (if (not done) (error (concat "No definitions for " symbol " found!")))))
 
