@@ -22,8 +22,10 @@ function index_main_project {
 }
 
 function index_dir {
-    ripper-tags --extra=q --recursive --emacs \
-                --exclude=.git "$@" > /dev/null
+    if ! ripper-tags --extra=q --recursive --emacs \
+         --exclude=.git "$@" > /dev/null; then
+        abort "Ripper tags failed! Is it really installed? Is the shim a valid reference to the ripper-tags script?"
+    fi
 }
 
 function index_project_gems {
