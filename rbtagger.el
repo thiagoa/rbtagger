@@ -240,7 +240,8 @@ Takes PROJECT-NAME."
       (run-hook-with-args 'rbtagger-after-generate-tag-hook success project-name)
       (if success
           (message "Ruby tags successfully generated")
-        (message "ERROR: Ruby tags generation failed!")))))
+        (message (concat "ERROR: Ruby tags generation failed! Please check "
+                         (format rbtagger-stderr-buffer project-name)))))))
 
 ;;;###autoload
 (defun rbtagger-generate-tags (project-dir &optional generate-tags-bin)
