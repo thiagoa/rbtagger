@@ -105,6 +105,11 @@ Here is a list of commands:
 I strongly recommend reading up this guide for more details on how to
 best use this package.
 
+**TIP**: In the tag prompt, both `TAB` and `?` are set to trigger
+autocomplete or display the available tag completions. To insert a
+literal question mark in the completion prompt (which is a valid
+character for Ruby methods), type `C-q ?`.
+
 ## Generating tags
 
 To generate `TAGS`, make sure the current buffer belongs to a Ruby

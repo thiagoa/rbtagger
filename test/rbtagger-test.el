@@ -139,7 +139,7 @@
 (rbtagger-buffer-deftest rbtagger-symbol-at-point-top-level-constant ()
   "module Bat\n  ::Top::Level.bar\nend"
   "Top"
-  (should (equal "Top::Level" (rbtagger-symbol-at-point))))
+  (should (equal "::Top::Level" (rbtagger-symbol-at-point))))
 
 ;; xref-find-definitions would present a list of two tags to choose
 ;; from: Base and ActiveRecord::Base, while rbtagger jumps straight to
