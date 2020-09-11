@@ -181,7 +181,9 @@ symbols but not in the command `ruby-mode'."
               (point)))
       (setq tag (substring-no-properties
                  (buffer-substring symbol-start-point symbol-end-point)))
-      (replace-regexp-in-string "^::?\\([^:]+\\)" "\\1" tag))))
+      (cond ((string-match "^::[A-Z]" tag) tag) ;; top-level constant
+            ((string-prefix-p ":" tag) (substring tag 1)) ;; symbol
+            (t tag)))))
 
 (defun rbtagger-current-indent-level ()
   "Return indentation level according to Ruby mode."
