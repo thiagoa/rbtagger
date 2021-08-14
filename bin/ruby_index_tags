@@ -34,7 +34,7 @@ function index_project_gems {
 
     cd "$project_dir"
 
-    if ! gem_list=$(bundle list --paths); then
+    if ! gem_list=$(bundle list --paths | grep -e "^/"); then
         abort "Command to list gems failed. Bundler returned an error."
     fi
 
