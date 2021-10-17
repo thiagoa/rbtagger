@@ -18,10 +18,10 @@ function abort {
 function index_main_project {
     local temp_tags_file=$1
 
-    index_dir --tag-file "$temp_tags_file" "$project_dir"
+    ripper_tags_wrapper --tag-file "$temp_tags_file" "$project_dir"
 }
 
-function index_dir {
+function ripper_tags_wrapper {
     if ! ripper-tags --extra=q --recursive --emacs \
          --exclude=.git "$@" > /dev/null; then
         abort "Ripper tags failed! Is it really installed? Is the shim a valid reference to the ripper-tags script?"
@@ -39,31 +39,45 @@ function index_project_gems {
     fi
 
     for gem_dir in $gem_list; do
-        index_gem "$gem_dir" "$temp_tags_file"
+        index_dir "$gem_dir" "$temp_tags_file"
     done
 }
 
-function index_gem {
-    local gem_dir=$1
+function index_stdlib {
+    local temp_tags_file=$1
+    local stdlib_dir=""
+
+    for dir in $(ruby -e "puts \$LOAD_PATH"); do
+        if [[ -f "$dir/set.rb" ]]; then
+            stdlib_dir="$dir"
+            break
+        fi
+    done
+
+    if [[ -n "$stdlib_dir" ]]; then
+        index_dir "$stdlib_dir" "$temp_tags_file" "Ruby standard library"
+    fi
+}
+
+function index_dir {
+    local dir=$1
     local temp_tags_file=$2
-    local gem_name
+    local name=${3:-$(basename $dir)}
 
-    if is_git_dir "$gem_dir"; then
-      local gem_tags_file="${gem_dir}/.TAGS"
+    if is_git_dir "$dir"; then
+      local tags_file="${dir}/.TAGS"
     else
-      local gem_tags_file="${gem_dir}/TAGS"
+      local tags_file="${dir}/TAGS"
     fi
 
-    gem_name="$(basename "$gem_dir")"
-
-    if [[ ! -f $gem_tags_file ]] || should_index_git_dir "$gem_dir"; then
-        echo "Indexing ${gem_name}..."
-        index_dir --tag-file "$gem_tags_file" "$gem_dir"
+    if [[ ! -f $tags_file ]] || should_index_git_dir "$dir"; then
+        echo "Indexing ${name}..."
+        ripper_tags_wrapper --tag-file "$tags_file" "$dir"
     else
-        echo "${gem_name} already indexed"
+        echo "${name} already indexed"
     fi
 
-    cat "$gem_tags_file" >> "$temp_tags_file"
+    cat "$tags_file" >> "$temp_tags_file"
 }
 
 function is_git_dir {
@@ -121,6 +135,7 @@ fi
 echo "Indexing main project..."
 
 index_main_project "$temp_tags_file"
+index_stdlib "$temp_tags_file"
 index_project_gems "$temp_tags_file"
 
 mv "$temp_tags_file" "$final_tags_file"
