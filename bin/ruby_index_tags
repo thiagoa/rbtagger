@@ -30,7 +30,7 @@ function check_if_script_can_run {
         abort "Can't find gem command. Ruby doesn't seem to be installed."
     fi
 
-    if ! command -v ripper-tags > /dev/null; then
+    if ! ripper-tags --help > /dev/null 2>&1; then
         echo "Installing ripper-tags gem..."
         gem install ripper-tags
     fi
@@ -83,8 +83,7 @@ function index_main_project {
 function ripper_tags_wrapper {
     if ! ripper-tags --extra=q --recursive --emacs \
          --exclude=.git "$@" > /dev/null; then
-        abort "Ripper tags failed! Is it really installed? " \
-              "Is the shim a valid reference to the ripper-tags script?"
+        abort "Ripper tags failed"
     fi
 }
 
