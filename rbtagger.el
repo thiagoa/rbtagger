@@ -255,12 +255,12 @@ Takes PROJECT-NAME."
 
 (defun rbtagger--log-buffer (log-buffer project-name)
   "Return the Emacs log buffer for PROJECT-NAME.
-LOG-BUFFER must be a format string with %s placeholders."
+LOG-BUFFER must be a string with %s placeholders."
   (format log-buffer project-name))
 
 (defun rbtagger--get-project-dir (&optional dir)
   "Return the current project directory.
-If DIR is given, expands and adjusts it."
+If given DIR, use it instead of locating the project directory."
   (or dir (setq dir (locate-dominating-file default-directory ".git")))
   (expand-file-name (string-remove-suffix "/" dir)))
 
