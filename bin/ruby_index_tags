@@ -1,28 +1,81 @@
 #!/usr/bin/env bash
 set -e
 
+function current_timestamp {
+    echo $(date +%s)
+}
+
 project_dir=${1:-.}
+lock_file="${project_dir}/.rbtagger-lock"
 gemfile="${project_dir}/Gemfile"
 temp_tags_file="${project_dir}/TAGS.$$" # Suffix with PID to make it unique
 final_tags_file="${project_dir}/TAGS"
-
-trap '/bin/rm -f $temp_tags_file' EXIT
+lock_timeout_seconds=300 # 5 minutes
 
 function warn {
-    local message=$1
+    local message=$@
 
     echo "$message" 1>&2
 }
 
 function abort {
-    local message=$1
+    local message=$@
 
     warn "$message"
     exit 1
 }
 
+function check_if_script_can_run {
+    if ! command -v gem > /dev/null; then
+        abort "Can't find gem command. Ruby doesn't seem to be installed."
+    fi
+
+    if ! command -v ripper-tags > /dev/null; then
+        echo "Installing ripper-tags gem..."
+        gem install ripper-tags
+    fi
+
+    if ! command -v bundler > /dev/null; then
+        # We don't automatically install bundler because the user might
+        # prefer a specific version.
+        abort "Can't find bundler. Make sure to gem install bundler."
+    fi
+
+    if [[ ! -f $gemfile ]]; then
+        abort "Could not generate tags. Are you in a Ruby project directory?"
+    fi
+}
+
+function cleanup {
+    rm -f "$temp_tags_file" "$lock_file"
+}
+
+function wait_on_lock {
+    local start_timestamp=$(current_timestamp)
+    local elapsed_seconds
+
+    while [[ -f "$lock_file" ]]; do
+        elapsed_seconds=$(($(current_timestamp) - $start_timestamp))
+
+        if [[ "$elapsed_seconds" -ge "$lock_timeout_seconds" ]]; then
+            abort "Timeout of ${lock_timeout_seconds} seconds exceeded!" \
+                  "If the script is not running, manually delete" \
+                  "the ${lock_file} stale lock file"
+        fi
+
+        sleep 1
+    done
+}
+
+function lock {
+    touch "$lock_file"
+}
+
+
 function index_main_project {
     local temp_tags_file=$1
+
+    echo "Indexing main project..."
 
     ripper_tags_wrapper --tag-file "$temp_tags_file" "$project_dir"
 }
@@ -126,26 +179,11 @@ function should_index_git_dir {
     fi
 }
 
-if ! command -v gem > /dev/null; then
-    abort "Can't find gem command. Ruby doesn't seem to be installed."
-fi
+check_if_script_can_run
+wait_on_lock
+lock
 
-if ! command -v ripper-tags > /dev/null; then
-    echo "Installing ripper-tags gem..."
-    gem install ripper-tags
-fi
-
-if ! command -v bundler > /dev/null; then
-    # We don't automatically install bundler because the user might
-    # prefer a specific version.
-    abort "Can't find bundler. Make sure to gem install bundler."
-fi
-
-if [[ ! -f $gemfile ]]; then
-    abort "Could not generate tags. Are you in a Ruby project directory?"
-fi
-
-echo "Indexing main project..."
+trap "cleanup" EXIT
 
 index_main_project "$temp_tags_file"
 index_stdlib "$temp_tags_file"

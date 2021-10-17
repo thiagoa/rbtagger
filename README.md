@@ -74,9 +74,9 @@ Ruby buffers:
 ```
 
 You can generate tags for the current Ruby project with <kbd>M-x</kbd>
-`rbtagger-generate-tags`. I strongly recommend setting up [git
-hooks](#git-hooks) for a better experience and to trigger this command
-manually less often.
+`rbtagger-generate-tags`. I strongly recommend setting up automation
+either through an [`after-save`](#after-save-hook) hook or [git hooks](#git-hooks) for a
+better experience.
 
 After enabling the minor mode, you can find definitions for the symbol
 at point with <kbd>M-.</kbd>, which is a shortcut for <kbd>M-x</kbd>
@@ -219,6 +219,22 @@ no prompts. Save them in `init.el`:
 ;; Reread TAGS without querying if it has changed
 (setq tags-revert-without-query 1)
 ```
+
+## After save hook
+
+You can automate tags generation with an after save hook. If you want
+to update your TAGS every time you save a Ruby file, you can setup a
+hook like this in your Emacs config:
+
+```elisp
+(add-hook 'after-save-hook
+          (lambda ()
+            (if (eq major-mode 'enh-ruby-mode)
+             (call-interactively 'rbtagger-generate-tags))))
+```
+
+If you use `ruby-mode` instead of `enh-ruby-mode`, just replace
+`enh-ruby-mode` in the above snippet.
 
 ## Git hooks
 
