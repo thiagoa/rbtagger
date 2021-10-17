@@ -278,6 +278,18 @@
     "fixtures"
     "fixtures/bin/ruby_index_tags_not_executable")))
 
+(ert-deftest rbtagger-stdout-log-switches-to-log-buffer ()
+  (find-file "fixtures/integration/root.rb")
+  (rbtagger-stdout-log)
+  (should (equal "*rbtagger-log: rbtagger*" (buffer-name)))
+  (should (null (buffer-file-name))))
+
+(ert-deftest rbtagger-stderr-log-switches-to-log-buffer ()
+  (find-file "fixtures/integration/root.rb")
+  (rbtagger-stderr-log)
+  (should (equal "*rbtagger-error-log: rbtagger*" (buffer-name)))
+  (should (null (buffer-file-name))))
+
 (ert-deftest-async rbtagger-generate-tags-success (done)
   (with-temp-generate-tags-hook
    (success project-name)
