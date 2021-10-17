@@ -8,7 +8,7 @@ function current_timestamp {
 project_dir=${1:-.}
 lock_file="${project_dir}/.rbtagger-lock"
 gemfile="${project_dir}/Gemfile"
-temp_tags_file="${project_dir}/TAGS.$$" # Suffix with PID to make it unique
+temp_tags_file="${project_dir}/TAGS.temp"
 final_tags_file="${project_dir}/TAGS"
 lock_timeout_seconds=300 # 5 minutes
 
@@ -83,7 +83,8 @@ function index_main_project {
 function ripper_tags_wrapper {
     if ! ripper-tags --extra=q --recursive --emacs \
          --exclude=.git "$@" > /dev/null; then
-        abort "Ripper tags failed! Is it really installed? Is the shim a valid reference to the ripper-tags script?"
+        abort "Ripper tags failed! Is it really installed? " \
+              "Is the shim a valid reference to the ripper-tags script?"
     fi
 }
 
