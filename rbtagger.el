@@ -62,7 +62,7 @@ Syntax Class Table'")
   "Keymap for function `rbtagger-mode'.")
 
 (defgroup rbtagger nil
-  "ctags-based Emacs utility to index Ruby projects."
+  "A ctags-based Emacs utility to index Ruby projects."
   :prefix "rbtagger-"
   :group 'applications
   :link '(url-link :tag "GitHub" "https://github.com/thiagoa/rbtagger"))
@@ -243,17 +243,41 @@ Takes PROJECT-NAME."
       (if success
           (message "Ruby tags successfully generated")
         (message (concat "ERROR: Ruby tags generation failed! Please check "
-                         (format rbtagger-stderr-buffer project-name)))))))
+                         (rbtagger--stderr-log-buffer project-name)))))))
+
+(defun rbtagger--stdout-log-buffer (project-name)
+  "Return the Emacs stdout log buffer for PROJECT-NAME."
+  (rbtagger--log-buffer rbtagger-stdout-buffer project-name))
+
+(defun rbtagger--stderr-log-buffer (project-name)
+  "Return the Emacs stderr log buffer for PROJECT-NAME."
+  (rbtagger--log-buffer rbtagger-stderr-buffer project-name))
+
+(defun rbtagger--log-buffer (log-buffer project-name)
+  "Return the Emacs log buffer for PROJECT-NAME.
+LOG-BUFFER must be a string with %s placeholders."
+  (format log-buffer project-name))
+
+(defun rbtagger--get-project-dir (&optional dir)
+  "Return the current project directory.
+If given DIR, use it instead of locating the project directory."
+  (or dir (setq dir (locate-dominating-file default-directory ".git")))
+  (expand-file-name (string-remove-suffix "/" dir)))
+
+(defun rbtagger--get-project-name (&optional project-dir)
+  "Return the current project name over PROJECT-DIR."
+  (or project-dir (setq project-dir (rbtagger--get-project-dir)))
+  (file-name-base project-dir))
 
 ;;;###autoload
 (defun rbtagger-generate-tags (project-dir &optional generate-tags-bin)
   "Generate Ruby tags for the current git project.
 Takes PROJECT-DIR and optionally GENERATE-TAGS-BIN.  If GENERATE_TAGS-BIN
 is not passed, it uses the `rbtagger-generate-tags' setting."
-  (interactive (list (locate-dominating-file default-directory ".git")))
-  (let* ((project-dir (or project-dir
-                          (error "Project git directory could not be found")))
-         (project-dir (expand-file-name (string-remove-suffix "/" project-dir)))
+  (interactive (list (rbtagger--get-project-dir)))
+  (let* ((project-dir (rbtagger--get-project-dir
+                       (or project-dir
+                           (error "Project git directory could not be found"))))
          (generate-tags-bin (or generate-tags-bin rbtagger-generate-tags-bin))
          (generate-tags-bin (expand-file-name generate-tags-bin)))
     (unless (file-directory-p project-dir)
@@ -262,19 +286,33 @@ is not passed, it uses the `rbtagger-generate-tags' setting."
       (error "Binary to generate Ruby tags could not be found"))
     (unless (file-executable-p generate-tags-bin)
       (error "Binary to generate Ruby tags is not executable"))
-    (let* ((project-name (file-name-base project-dir))
+    (let* ((project-name (rbtagger--get-project-name project-dir))
            (process-name (concat "rbtagger-" project-name))
-           (buffer (get-buffer-create (format rbtagger-stdout-buffer project-name)))
+           (stdout (get-buffer-create (rbtagger--stdout-log-buffer project-name)))
            (command (list (file-truename generate-tags-bin) project-dir))
-           (stderr (get-buffer-create (format rbtagger-stderr-buffer project-name)))
+           (stderr (get-buffer-create (rbtagger--stderr-log-buffer project-name)))
            (sentinel (rbtagger--sentinel project-name)))
-      (dolist (b (list buffer stderr))
+      (dolist (b (list stdout stderr))
         (with-current-buffer b (erase-buffer)))
       (make-process :name process-name
-                    :buffer buffer
+                    :buffer stdout
                     :stderr stderr
                     :command command
                     :sentinel sentinel))))
+
+;;;###autoload
+(defun rbtagger-stdout-log ()
+  "Switch to rbtagger stdout log."
+  (interactive)
+  (switch-to-buffer (rbtagger--stdout-log-buffer
+                     (rbtagger--get-project-name))))
+
+;;;###autoload
+(defun rbtagger-stderr-log ()
+  "Switch to rbtagger stderr log."
+  (interactive)
+  (switch-to-buffer (rbtagger--stderr-log-buffer
+                     (rbtagger--get-project-name))))
 
 ;;;###autoload
 (define-minor-mode rbtagger-mode
