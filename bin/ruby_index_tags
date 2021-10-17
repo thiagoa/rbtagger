@@ -8,10 +8,16 @@ final_tags_file="${project_dir}/TAGS"
 
 trap '/bin/rm -f $temp_tags_file' EXIT
 
+function warn {
+    local message=$1
+
+    echo "$message" 1>&2
+}
+
 function abort {
     local message=$1
 
-    echo "$message" > /dev/stderr
+    warn "$message"
     exit 1
 }
 
@@ -66,10 +72,15 @@ function index_dir {
     local temp_tags_file=$2
     local name=${3:-$(basename $dir)}
 
+    if [[ ! -d "$dir" ]]; then
+        warn "${name} not found"
+        return
+    fi
+
     if is_git_dir "$dir"; then
-      local tags_file="${dir}/.TAGS"
+        local tags_file="${dir}/.TAGS"
     else
-      local tags_file="${dir}/TAGS"
+        local tags_file="${dir}/TAGS"
     fi
 
     if [[ ! -f $tags_file ]] || should_index_git_dir "$dir"; then
@@ -95,7 +106,7 @@ function should_index_git_dir {
     local gem_dir=$1
 
     if ! is_git_dir "$gem_dir"; then
-      return 1
+        return 1
     fi
 
     local commit_hash_file="${gem_dir}/.ruby_tags_commit_hash"
