@@ -144,11 +144,11 @@ $ echo .ruby_tags_commit_hash >> ~/.gitignore
 <kbd>M-x</kbd> `rbtagger-generate-tags` will create two hidden buffers
 that can be accessed with the following commands:
 
-- <kbd>M-x</kbd> `rbtagger-stdout-log`: The message log where you
-  can see what is being indexed;
+- <kbd>M-x</kbd> `rbtagger-stdout-log`: The message log that shows
+  what's being (or was) indexed;
 - <kbd>M-x</kbd> `rbtagger-stderr-log`: The error log.
 
-You can consult the output of these buffers for troubleshooting live
+You can watch the output of these buffers live for troubleshooting
 or after indexing. Note that they will only hold the output of the
 last `rbtagger-generate-tags`.
 
