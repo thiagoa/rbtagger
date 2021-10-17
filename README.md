@@ -16,7 +16,7 @@ configuration.
 
 ## Features
 
-- It indexes full projects along with gems;
+- It indexes full projects along with gems, including the Ruby standard library;
 - It indexes full Ruby modules, thanks to `ripper-tags` extra options.
 - It has contextual tags lookup. RbTagger is aware of Ruby code and
 will try to jump to the most specific occurrence for the symbol at
@@ -126,10 +126,10 @@ project.
 
 The first call to the command might take a few seconds to complete
 depending on the size of your project, but subsequent calls will be
-much faster because the script will skip gems whose tags have already
-been generated. If the gem is a local git project, it will only be
-reindexed if the commit hash has changed from the previous indexing
-operation.
+much faster because the script will skip directories whose tags have
+already been generated. If the gem is a local git project, it will
+only be reindexed if the commit hash has changed from the previous
+indexing operation.
 
 Make sure to add the following patterns to your global `.gitignore`:
 
