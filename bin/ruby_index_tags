@@ -6,7 +6,6 @@ function current_timestamp {
 }
 
 project_dir=${1:-$(pwd)}
-project_name=$(basename $project_dir)
 lock_file="${project_dir}/.rbtagger-lock"
 gemfile="${project_dir}/Gemfile"
 temp_tags_file="${project_dir}/TAGS.temp"
@@ -90,6 +89,7 @@ function ripper_tags_wrapper {
 
 function index_project_gems {
     local temp_tags_file=$1
+    local project_name=$(basename $project_dir)
     local gem_dir="$(gem environment gemdir)"
     local gem_list
     local gem_list_cache_file="${gem_dir}/gems/gems.${project_name}"
@@ -99,7 +99,7 @@ function index_project_gems {
         abort "Command to list gems failed. Bundler returned an error."
     fi
 
-    if [[ -f "$gem_list_cache_file" ]]; then
+    if [[ -f "$gem_tags_file" ]] && [[ -f "$gem_list_cache_file" ]]; then
         if cmp <(echo "$gem_list") $gem_list_cache_file > /dev/null 2>&1; then
             echo "Gems did not change, skipping..."
             cat "$gem_tags_file" >> "$temp_tags_file"
@@ -107,14 +107,16 @@ function index_project_gems {
         fi
     fi
 
-    echo "$gem_list" > "$gem_list_cache_file"
-    rm -f "$gem_tags_file" > /dev/null 2>&1
+    if [[ -n "$gem_list" ]]; then
+        echo "$gem_list" > "$gem_list_cache_file"
+        rm -f "$gem_tags_file" > /dev/null 2>&1
 
-    for gem_dir in $gem_list; do
-        index_dir "$gem_dir" "$gem_tags_file"
-    done
+        for gem_dir in $gem_list; do
+            index_dir "$gem_dir" "$gem_tags_file"
+        done
 
-    cat "$gem_tags_file" >> "$temp_tags_file"
+        cat "$gem_tags_file" >> "$temp_tags_file"
+    fi
 }
 
 function index_stdlib {
