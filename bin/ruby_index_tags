@@ -93,10 +93,16 @@ function index_project_gems {
     local gem_dir="$(gem environment gemdir)"
     local gem_list
     local gem_list_cache_file="${gem_dir}/gems/gems.${project_name}"
-    local gem_tags_file="${gem_dir}/gems/TAGS"
+    local gem_tags_file="${gem_dir}/gems/TAGS.${project_name}"
 
     if ! gem_list=$(bundle list --paths | grep -e "^/"); then
-        abort "Command to list gems failed. Bundler returned an error."
+        warn "Command to list gems failed. Bundler returned an error."
+
+        if [[ -f "$gem_tags_file" ]]; then
+            gem_list=$(cat $gem_list_cache_file)
+        else
+            abort "Tags generation failed!"
+        fi
     fi
 
     if [[ -f "$gem_tags_file" ]] && [[ -f "$gem_list_cache_file" ]]; then
@@ -209,4 +215,4 @@ index_project_gems "$temp_tags_file"
 mv "$temp_tags_file" "$final_tags_file"
 
 echo
-echo "Tags generation complete! File: ${final_tags_file}"
+echo "Tags generation finished! File: ${final_tags_file}"
