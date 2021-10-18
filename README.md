@@ -81,7 +81,7 @@ better experience.
 After enabling the minor mode, you can find definitions for the symbol
 at point with <kbd>M-.</kbd>, which is a shortcut for <kbd>M-x</kbd>
 `rbtagger-find-definitions`. The above keybinding replaces Emacs'
-keybinding to `xref-find-definitions`.
+keybinding for `xref-find-definitions`.
 
 You can also force displaying a prompt of tags to choose from with the
 universal argument: `C-u M-.`.
@@ -95,12 +95,12 @@ Here is a list of commands:
 | Keybinding             | Description                                                |
 |------------------------|------------------------------------------------------------|
 | <kbd>M-.</kbd>         | `rbtagger-find-definitions`                                |
+| <kbd>M-,</kbd>         | `xref-pop-marker-stack`                                    |
 | <kbd>C-u M-.</kbd>     | `rbtagger-find-definitions` (displays prompt)              |
 | <kbd>C-c C-.</kbd>     | `rbtagger-find-definitions-other-window`                   |
 | <kbd>C-u C-c C-.</kbd> | `rbtagger-find-definitions-other-window` (displays prompt) |
 | <kbd>C-c M-.</kbd>     | `rbtagger-find-definitions-other-frame`                    |
 | <kbd>C-u C-c M-.</kbd> | `rbtagger-find-definitions-other-frame` (displays prompt)  |
-| <kbd>M-,</kbd>         | `xref-pop-marker-stack`                                    |
 
 I strongly recommend reading up this guide for more details on how to
 best use this package.
@@ -120,13 +120,14 @@ The above command will:
 
 - Install the `ripper-tags` gem if not already installed,
 - Index the main project,
-- Index all dependencies declared on `Gemfile`,
+- Index the Ruby standard library,
+- Index all dependencies declared in `Gemfile`,
 - Generate a single `TAGS` file and save it to the root of the
 project.
 
 The first call to the command might take a few seconds to complete
 depending on the size of your project, but subsequent calls will be
-much faster because the script will skip directories whose tags have
+faster because the script will skip directories whose tags have
 already been generated. If the gem is a local git project, it will
 only be reindexed if the commit hash has changed from the previous
 indexing operation.
@@ -144,11 +145,10 @@ $ echo .ruby_tags_commit_hash >> ~/.gitignore
 <kbd>M-x</kbd> `rbtagger-generate-tags` will create two hidden buffers
 that can be accessed with the following commands:
 
-- <kbd>M-x</kbd> `rbtagger-stdout-log`: The message log that shows
-  what's being (or was) indexed;
+- <kbd>M-x</kbd> `rbtagger-stdout-log`: The message log of what's being indexed;
 - <kbd>M-x</kbd> `rbtagger-stderr-log`: The error log.
 
-You can watch the output of these buffers live for troubleshooting
+You can watch the output of these buffers live for troubleshooting,
 or after indexing. Note that they will only hold the output of the
 last `rbtagger-generate-tags`.
 
@@ -212,12 +212,16 @@ I recommend the following settings for a smoother tags experience with
 no prompts. Save them in `init.el`:
 
 ```elisp
-;; Always start a new tags list (do not accumulate a list of
-;; tags) to keep up with the convention of one TAGS per project.
-(setq tags-add-tables nil)
+;; Make tag search case sensitive. Highly recommended for
+;; maximum precision.
+(setq tags-case-fold-search nil)
 
 ;; Reread TAGS without querying if it has changed
 (setq tags-revert-without-query 1)
+
+;; Always start a new tags list (do not accumulate a list of
+;; tags) to keep up with the convention of one TAGS per project.
+(setq tags-add-tables nil)
 ```
 
 ## After save hook
@@ -351,6 +355,6 @@ run `checkdoc` over it. Any warnings will make the command fail.
 
 ## License
 
-Copyright © 2019 Thiago Araújo Silva.
+Copyright © 2021 Thiago Araújo Silva.
 
 Distributed under the GNU General Public License, version 3
