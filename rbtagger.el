@@ -254,7 +254,7 @@ Takes PROJECT-NAME."
   (rbtagger--log-buffer rbtagger-stderr-buffer project-name))
 
 (defun rbtagger--log-buffer (log-buffer project-name)
-  "Return the Emacs log buffer for PROJECT-NAME.
+  "Return the Emacs LOG-BUFFER for PROJECT-NAME.
 LOG-BUFFER must be a string with %s placeholders."
   (format log-buffer project-name))
 
