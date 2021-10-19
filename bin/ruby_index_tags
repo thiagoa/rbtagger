@@ -81,7 +81,7 @@ function index_main_project {
 }
 
 function ripper_tags_wrapper {
-    if ! ripper-tags --extra=q --recursive --emacs \
+    if ! ripper-tags --extra=q --force --recursive --emacs \
          --exclude=.git "$@" > /dev/null; then
         abort "Ripper tags failed"
     fi
