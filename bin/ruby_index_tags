@@ -82,7 +82,7 @@ function index_main_project {
 
 function ripper_tags_wrapper {
     if ! ripper-tags --extra=q --force --recursive --emacs \
-         --exclude=.git "$@" > /dev/null; then
+         --exclude=.git --exclude='.#*.rb' "$@" > /dev/null; then
         abort "Ripper tags failed"
     fi
 }
@@ -92,8 +92,8 @@ function index_project_gems {
     local project_name=$(basename $project_dir)
     local gem_dir="$(gem environment gemdir)"
     local gem_list
-    local gem_list_cache_file="${gem_dir}/gems/gems.${project_name}"
-    local gem_tags_file="${gem_dir}/gems/TAGS.${project_name}"
+    local gem_list_cache_file="${gem_dir}/gems.${project_name}"
+    local gem_tags_file="${gem_dir}/TAGS.${project_name}"
 
     if ! gem_list=$(bundle list --paths | grep -e "^/"); then
         warn "Command to list gems failed. Bundler returned an error."
