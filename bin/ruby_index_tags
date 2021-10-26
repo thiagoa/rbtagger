@@ -72,7 +72,6 @@ function lock {
     touch "$temp_tags_file"
 }
 
-
 function index_main_project {
     local temp_tags_file=$1
 
