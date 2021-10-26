@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
 set -e
 
-function current_timestamp {
-    echo $(date +%s)
-}
-
 project_dir=${1:-$(pwd)}
-lock_file="${project_dir}/.rbtagger-lock"
+project_name=$(basename $project_dir)
 gemfile="${project_dir}/Gemfile"
 temp_tags_file="${project_dir}/TAGS.temp"
 final_tags_file="${project_dir}/TAGS"
@@ -23,6 +19,10 @@ function abort {
 
     warn "$message"
     exit 1
+}
+
+function current_timestamp {
+    echo $(date +%s)
 }
 
 function check_if_script_can_run {
@@ -47,20 +47,21 @@ function check_if_script_can_run {
 }
 
 function cleanup {
-    rm -f "$temp_tags_file" "$lock_file"
+    rm -f "$temp_tags_file"
 }
 
 function wait_on_lock {
     local start_timestamp=$(current_timestamp)
     local elapsed_seconds
 
-    while [[ -f "$lock_file" ]]; do
+    while [[ -f "$temp_tags_file" ]]; do
         elapsed_seconds=$(($(current_timestamp) - $start_timestamp))
 
         if [[ "$elapsed_seconds" -ge "$lock_timeout_seconds" ]]; then
             abort "Timeout of ${lock_timeout_seconds} seconds exceeded!" \
                   "If the script is not running, manually delete" \
-                  "the ${lock_file} stale lock file"
+                  "the ${temp_tags_file} temporary tags file that serves " \
+                  "as a lock file"
         fi
 
         sleep 1
@@ -68,7 +69,7 @@ function wait_on_lock {
 }
 
 function lock {
-    touch "$lock_file"
+    touch "$temp_tags_file"
 }
 
 
@@ -89,39 +90,38 @@ function ripper_tags_wrapper {
 
 function index_project_gems {
     local temp_tags_file=$1
-    local project_name=$(basename $project_dir)
     local gem_dir="$(gem environment gemdir)"
     local gem_list
     local gem_list_cache_file="${gem_dir}/gems.${project_name}"
-    local gem_tags_file="${gem_dir}/TAGS.${project_name}"
+    local gem_tags_cache_file="${gem_dir}/TAGS.${project_name}"
 
     if ! gem_list=$(bundle list --paths | grep -e "^/"); then
         warn "Command to list gems failed. Bundler returned an error."
 
-        if [[ -f "$gem_tags_file" ]]; then
+        if [[ -f "$gem_tags_cache_file" ]]; then
             gem_list=$(cat $gem_list_cache_file)
         else
             abort "Tags generation failed!"
         fi
     fi
 
-    if [[ -f "$gem_tags_file" ]] && [[ -f "$gem_list_cache_file" ]]; then
+    if [[ -f "$gem_tags_cache_file" ]] && [[ -f "$gem_list_cache_file" ]]; then
         if cmp <(echo "$gem_list") $gem_list_cache_file > /dev/null 2>&1; then
             echo "Gems did not change, skipping..."
-            cat "$gem_tags_file" >> "$temp_tags_file"
+            cat "$gem_tags_cache_file" >> "$temp_tags_file"
             return
         fi
     fi
 
     if [[ -n "$gem_list" ]]; then
         echo "$gem_list" > "$gem_list_cache_file"
-        rm -f "$gem_tags_file" > /dev/null 2>&1
+        rm -f "$gem_tags_cache_file" > /dev/null 2>&1
 
         for gem_dir in $gem_list; do
-            index_dir "$gem_dir" "$gem_tags_file"
+            index_dir "$gem_dir" "$gem_tags_cache_file"
         done
 
-        cat "$gem_tags_file" >> "$temp_tags_file"
+        cat "$gem_tags_cache_file" >> "$temp_tags_file"
     fi
 }
 
