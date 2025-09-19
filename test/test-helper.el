@@ -116,7 +116,6 @@ are the optional arguments to `ert-deftest'."
   (let ((mode-code (if (eq mode 'enh-ruby-mode)
                        '(progn
                           (enh-ruby-mode)
-                          (erm-wait-for-parse)
                           (font-lock-fontify-buffer))
                      `(,mode))))
     `(with-temp-buffer
