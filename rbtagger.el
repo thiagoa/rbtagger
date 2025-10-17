@@ -118,7 +118,7 @@ For example, '/usr/src/app'"
 (defcustom rbtagger-docker-tramp-prefix nil
   "TRAMP prefix for accessing the container from Emacs.
 If set, every path in the generated TAGS file will be prefixed with this
-value. Required if `rbtagger-use-docker` is enabled, since container
+value.  Required if `rbtagger-use-docker` is enabled, since container
 paths are used by default."
   :type 'string
   :group 'rbtagger)
@@ -185,7 +185,8 @@ point."
 
 (defun rbtagger--find-definitions (symbol where-to-open)
   "The function to actually find the definitions.
-Takes SYMBOL and WHERE-TO-OPEN, which can be :same-window, :other-window or :other-frame."
+Takes SYMBOL and WHERE-TO-OPEN, which can be :same-window, :other-window
+or :other-frame."
   (let* ((top-level-constant-p (string-prefix-p "::" symbol))
          (symbol (replace-regexp-in-string "^::" "" symbol))
          (candidates (if top-level-constant-p () (rbtagger-find-candidates)))
@@ -235,11 +236,11 @@ symbols but not in the command `ruby-mode'."
     ruby-indent-level))
 
 (defun rbtagger-find-candidates ()
-  "Find Ruby modules until nesting level at point.
-This is a simple regex-based and indentation-based function to
-return a list of Ruby modules.  If point is under modules 'One'
-and 'Two', for example, this function will return '(list \"One::Two\"
-\"One\")."
+  "Find Ruby modules until the nesting level at point.
+
+This is a simple regex- and indentation-based function that returns a
+list of Ruby modules.  If point is inside modules `One` and `Two`, for
+example, this function returns (list \"One::Two\" \"One\")."
   (save-excursion
     (let ((start-pos (line-beginning-position))
           (indent-level (rbtagger-current-indent-level))
@@ -248,11 +249,11 @@ and 'Two', for example, this function will return '(list \"One::Two\"
           nesting)
       (goto-char (point-min))
       (cl-flet ((filter-by-indent (modules current-indent)
-                                  (seq-remove
-                                   (lambda (tuple)
-                                     (let ((module-indent (car tuple)))
-                                       (>= module-indent current-indent)))
-                                   modules)))
+                  (seq-remove
+                   (lambda (tuple)
+                     (let ((module-indent (car tuple)))
+                       (>= module-indent current-indent)))
+                   modules)))
         (while (not (eq (point) start-pos))
           (let ((found-module (re-search-forward rbtagger-module-regex
                                                  (line-end-position)
@@ -312,13 +313,13 @@ DOCKER-APP-DIR."
         (message (concat "ERROR: Ruby tags generation failed! Please check "
                          (rbtagger--stderr-log-buffer project-name)))))))
 
-(defun rbtagger--stdout-log-buffer (project-name)
-  "Return the Emacs stdout log buffer for PROJECT-NAME."
-  (rbtagger--log-buffer rbtagger-stdout-buffer project-name))
+(defun rbtagger--stdout-log-buffer (rbtagger-project-name)
+  "Return the Emacs stdout log buffer for RBTAGGER-PROJECT-NAME."
+  (rbtagger--log-buffer rbtagger-stdout-buffer rbtagger-project-name))
 
-(defun rbtagger--stderr-log-buffer (project-name)
-  "Return the Emacs stderr log buffer for PROJECT-NAME."
-  (rbtagger--log-buffer rbtagger-stderr-buffer project-name))
+(defun rbtagger--stderr-log-buffer (rbtagger-project-name)
+  "Return the Emacs stderr log buffer for RBTAGGER-PROJECT-NAME."
+  (rbtagger--log-buffer rbtagger-stderr-buffer rbtagger-project-name))
 
 (defun rbtagger--log-buffer (log-buffer project-name)
   "Return the Emacs LOG-BUFFER for PROJECT-NAME.
@@ -344,7 +345,7 @@ GENERATE-TAGS-BIN is the path to the script that generates TAGS.
 
 If `rbtagger-use-docker` is non-nil, returns a list containing
 the Docker wrapper script, Docker command, container app directory,
-and the path to `generate-tags-bin`. Signals an error if any Docker
+and the path to `generate-tags-bin`.  Signals an error if any Docker
 variable is nil.
 
 If Docker is not used, returns a simple list with
