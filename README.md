@@ -156,6 +156,93 @@ A message will also be displayed in the minibuffer (or the
 `*Messages*` buffer) when the command finishes, or you can configure
 [Custom Notifications](#custom-notifications).
 
+### Docker support
+
+`rbtagger` supports generating tags from within Docker containers. To
+work seamlessly with both `docker` and `docker-compose`, it takes a
+flexible approach that lets you specify the exact Docker command to
+use.
+
+To enable Docker integration, set the following options:
+
+- `rbtagger-use-docker` - Enable Docker mode. Set this to `t` to
+  activate container-based tag generation. (Default: `nil`)
+
+- `rbtagger-docker-command` - The command used to run the
+  tag-generation script inside your container. Since we don’t assume
+  whether you use plain `docker` or `docker-compose`, you can specify
+  any command prefix. This usually looks like`docker exec` or
+  `docker-compose run` (or even `docker run`). `rbtagger` will append
+  the shell command to execute inside the container.
+
+Here's an example:
+
+```elisp
+(setq rbtagger-use-docker t)
+(setq rbtagger-docker-command "docker-compose run --rm -T --entrypoint \"\" app")
+```
+
+To scope these settings to a specific project, define them in your
+`.dir-locals.el` file:
+
+```elisp
+((nil . ((rbtagger-use-docker . t)
+         (rbtagger-docker-command . "docker-compose run --rm -T --entrypoint \"\" app"))))
+```
+
+#### Post-Processing the Docker TAGS File
+
+When you run `rbtagger-generate-tags` (either manually or via a hook),
+the resulting `TAGS` file is generated inside the container. By
+default, this means all paths in the file will reference container
+directories — unusable directly on your host machine.
+
+To fix this, `rbtagger` provides two options to rewrite those paths:
+
+- `rbtagger-docker-tramp-prefix` - The TRAMP prefix to use for
+  container files. Example: `/docker:myapp`. Here, "myapp" should
+  match your container’s name. With this set, `rbtagger` will rewrite
+  paths to include the TRAMP prefix so Emacs can transparently open
+  files inside the container.
+
+- `rbtagger-docker-app-directory` - The path inside the container
+  where your app lives (e.g. `/usr/src/app`). When set, `rbtagger`
+  replaces occurrences of this directory in the `TAGS` file with your
+  local project directory, so your app files open locally.
+
+Here's how these options interact:
+
+- If only `rbtagger-docker-tramp-prefix` is set, all files in the
+  `TAGS` file will open through TRAMP inside the container.
+
+- If both `rbtagger-docker-tramp-prefix` and
+  `rbtagger-docker-app-directory` are set, `rbtagger` rewrites app
+  files to point to your local filesystem while keeping gems and
+  standard library files accessible through TRAMP.
+
+With both `rbtagger-docker-tramp-prefix` and
+`rbtagger-docker-app-directory` set, you will usually get local file
+app access and access to gems and standard library through TRAMP,
+unless gems and stdlib live in your app directory.
+
+Example of a complete `.dir-locals.el`:
+
+```rb
+((nil . ((rbtagger-use-docker . t)
+         (rbtagger-docker-command . "docker-compose run --rm -T --entrypoint \"\" app")
+         (rbtagger-docker-tramp-prefix . "/docker:myapp")
+         (rbtagger-docker-app-directory . "/usr/src/app"))))
+```
+
+#### Caching and Gem reindexing
+
+If your gems are not stored in a Docker volume, their `TAGS` files
+will be regenerated on every container run. That’s because the cached
+gem `TAGS` are ephemeral and disappear when the container stops.
+
+To avoid this, mount your gems directory as a volume or reuse the same
+container instance across runs.
+
 ## Looking up tags
 
 ### Visiting tags tables

@@ -93,6 +93,49 @@ current directory otherwise."
   :type 'hook
   :group 'rbtagger)
 
+(defcustom rbtagger-use-docker nil
+  "Whether to generate TAGS inside a Docker container."
+  :type 'boolean
+  :group 'rbtagger)
+
+(defcustom rbtagger-docker-command nil
+  "Command used to run shell commands inside the Docker container.
+It should reference the project’s container and avoid allocating a TTY.
+Example:
+
+  docker-compose run --rm -T app
+
+You can set this in a `.dir-locals.el` file for per-project configuration."
+  :type 'string
+  :group 'rbtagger)
+
+(defcustom rbtagger-docker-app-directory nil
+  "Directory inside the container where the application resides.
+For example, '/usr/src/app'"
+  :type 'string
+  :group 'rbtagger)
+
+(defcustom rbtagger-docker-tramp-prefix nil
+  "TRAMP prefix for accessing the container from Emacs.
+If set, every path in the generated TAGS file will be prefixed with this
+value.  Required if `rbtagger-use-docker` is enabled, since container
+paths are used by default."
+  :type 'string
+  :group 'rbtagger)
+
+(defcustom rbtagger-docker-generate-tags-bin (concat (file-name-directory
+                                                      (or load-file-name (buffer-file-name)))
+                                                     "bin/ruby_index_tags_docker")
+  "Full path to the script used to generate the TAGS file inside Docker.
+
+This script:
+
+1. Relies on the other Docker-related variables.
+2. Copies `rbtagger-generate-tags-bin` into the container.
+3. Executes it within the container to produce the TAGS file."
+  :type 'string
+  :group 'rbtagger)
+
 ;;;###autoload
 (defun rbtagger-find-definitions (symbol)
   "Find definitions for the Ruby SYMBOL at point.
@@ -142,7 +185,8 @@ point."
 
 (defun rbtagger--find-definitions (symbol where-to-open)
   "The function to actually find the definitions.
-Takes SYMBOL and WHERE-TO-OPEN, which can be :same-window, :other-window or :other-frame."
+Takes SYMBOL and WHERE-TO-OPEN, which can be :same-window, :other-window
+or :other-frame."
   (let* ((top-level-constant-p (string-prefix-p "::" symbol))
          (symbol (replace-regexp-in-string "^::" "" symbol))
          (candidates (if top-level-constant-p () (rbtagger-find-candidates)))
@@ -192,11 +236,11 @@ symbols but not in the command `ruby-mode'."
     ruby-indent-level))
 
 (defun rbtagger-find-candidates ()
-  "Find Ruby modules until nesting level at point.
-This is a simple regex-based and indentation-based function to
-return a list of Ruby modules.  If point is under modules 'One'
-and 'Two', for example, this function will return '(list \"One::Two\"
-\"One\")."
+  "Find Ruby modules until the nesting level at point.
+
+This is a simple regex- and indentation-based function that returns a
+list of Ruby modules.  If point is inside modules `One` and `Two`, for
+example, this function returns (list \"One::Two\" \"One\")."
   (save-excursion
     (let ((start-pos (line-beginning-position))
           (indent-level (rbtagger-current-indent-level))
@@ -205,11 +249,11 @@ and 'Two', for example, this function will return '(list \"One::Two\"
           nesting)
       (goto-char (point-min))
       (cl-flet ((filter-by-indent (modules current-indent)
-                                  (seq-remove
-                                   (lambda (tuple)
-                                     (let ((module-indent (car tuple)))
-                                       (>= module-indent current-indent)))
-                                   modules)))
+                  (seq-remove
+                   (lambda (tuple)
+                     (let ((module-indent (car tuple)))
+                       (>= module-indent current-indent)))
+                   modules)))
         (while (not (eq (point) start-pos))
           (let ((found-module (re-search-forward rbtagger-module-regex
                                                  (line-end-position)
@@ -233,25 +277,49 @@ and 'Two', for example, this function will return '(list \"One::Two\"
                 (let ((module-name (cdr tuple)))
                   (string-join module-name "::"))) modules))))
 
-(defun rbtagger--sentinel (project-name)
+(defun rbtagger--postprocess-tags (local-app-dir docker-app-dir docker-tramp-prefix)
+  "Post-process the TAGS file in LOCAL-APP-DIR for Docker.
+
+Replaces lines starting with DOCKER-APP-DIR with LOCAL-PROJECT-DIR,
+and prefixes all other lines starting with `/` with DOCKER-TRAMP-PREFIX."
+  (let ((tags-file (expand-file-name "TAGS" local-app-dir)))
+    (shell-command
+     (format
+      "awk 'BEGIN {docker_app_dir=\"%s\"; local_app_dir=\"%s\"; tramp_prefix=\"%s\"} \
+           $0 ~ \"^\" docker_app_dir {sub(\"^\" docker_app_dir, local_app_dir)} \
+           $0 ~ \"^/\" && $0 !~ \"^\" local_app_dir {print tramp_prefix $0; next} \
+           {print}' %s > %s.tmp && mv %s.tmp %s"
+      docker-app-dir
+      local-app-dir
+      docker-tramp-prefix
+      (shell-quote-argument tags-file)
+      (shell-quote-argument tags-file)
+      (shell-quote-argument tags-file)
+      (shell-quote-argument tags-file)))))
+
+(defun rbtagger--sentinel (project-dir project-name use-docker docker-tramp-prefix docker-app-dir)
   "Generate the sentinel to run after `rbtagger-generate-tags'.
-Takes PROJECT-NAME."
+Takes PROJECT-DIR, PROJECT-NAME, USE-DOCKER, DOCKER-TRAMP-PREFIX, and
+DOCKER-APP-DIR."
   (lambda (process _msg)
     (let ((success (and (memq (process-status process) '(exit signal))
                         (eq (process-exit-status process) 0))))
       (run-hook-with-args 'rbtagger-after-generate-tag-hook success project-name)
       (if success
-          (message "Ruby tags successfully generated")
+          (progn
+            (if (and use-docker docker-tramp-prefix)
+                (rbtagger--postprocess-tags project-dir docker-app-dir docker-tramp-prefix))
+            (message "Ruby tags successfully generated"))
         (message (concat "ERROR: Ruby tags generation failed! Please check "
                          (rbtagger--stderr-log-buffer project-name)))))))
 
-(defun rbtagger--stdout-log-buffer (project-name)
-  "Return the Emacs stdout log buffer for PROJECT-NAME."
-  (rbtagger--log-buffer rbtagger-stdout-buffer project-name))
+(defun rbtagger--stdout-log-buffer (rbtagger-project-name)
+  "Return the Emacs stdout log buffer for RBTAGGER-PROJECT-NAME."
+  (rbtagger--log-buffer rbtagger-stdout-buffer rbtagger-project-name))
 
-(defun rbtagger--stderr-log-buffer (project-name)
-  "Return the Emacs stderr log buffer for PROJECT-NAME."
-  (rbtagger--log-buffer rbtagger-stderr-buffer project-name))
+(defun rbtagger--stderr-log-buffer (rbtagger-project-name)
+  "Return the Emacs stderr log buffer for RBTAGGER-PROJECT-NAME."
+  (rbtagger--log-buffer rbtagger-stderr-buffer rbtagger-project-name))
 
 (defun rbtagger--log-buffer (log-buffer project-name)
   "Return the Emacs LOG-BUFFER for PROJECT-NAME.
@@ -268,6 +336,29 @@ If given DIR, use it instead of locating the project directory."
   "Return the current project name over PROJECT-DIR."
   (or project-dir (setq project-dir (rbtagger--get-project-dir)))
   (file-name-base project-dir))
+
+(defun rbtagger--generate-tags-command (project-dir generate-tags-bin)
+  "Build the shell command used to generate the TAGS file.
+
+PROJECT-DIR is the root directory of the project.
+GENERATE-TAGS-BIN is the path to the script that generates TAGS.
+
+If `rbtagger-use-docker` is non-nil, returns a list containing
+the Docker wrapper script, Docker command, container app directory,
+and the path to `generate-tags-bin`.  Signals an error if any Docker
+variable is nil.
+
+If Docker is not used, returns a simple list with
+GENERATE-TAGS-BIN and PROJECT-DIR for local execution."
+  (let ((generate-tags-bin (file-truename generate-tags-bin)))
+    (if rbtagger-use-docker
+        (if (and rbtagger-docker-generate-tags-bin rbtagger-docker-command)
+            (list rbtagger-docker-generate-tags-bin
+                  rbtagger-docker-command
+                  generate-tags-bin
+                  rbtagger-docker-app-directory)
+          (error "Rbtagger Docker config is incomplete"))
+      (list generate-tags-bin project-dir))))
 
 ;;;###autoload
 (defun rbtagger-generate-tags (project-dir &optional generate-tags-bin)
@@ -289,9 +380,14 @@ is not passed, it uses the `rbtagger-generate-tags' setting."
     (let* ((project-name (rbtagger--get-project-name project-dir))
            (process-name (concat "rbtagger-" project-name))
            (stdout (get-buffer-create (rbtagger--stdout-log-buffer project-name)))
-           (command (list (file-truename generate-tags-bin) project-dir))
+           (command (rbtagger--generate-tags-command project-dir generate-tags-bin))
            (stderr (get-buffer-create (rbtagger--stderr-log-buffer project-name)))
-           (sentinel (rbtagger--sentinel project-name)))
+           (sentinel (rbtagger--sentinel
+                      project-dir
+                      project-name
+                      rbtagger-use-docker
+                      rbtagger-docker-tramp-prefix
+                      rbtagger-docker-app-directory)))
       (dolist (b (list stdout stderr))
         (with-current-buffer b (erase-buffer)))
       (make-process :name process-name

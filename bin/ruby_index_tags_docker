@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+docker_command="$1"
+generate_tags_local_path="$2"
+container_app_dir="${3:-}"
+
+if [[ -n "$container_app_dir" ]]; then
+  eval "$docker_command bash -c 'cd \"${container_app_dir}\" && bash -s --'" < "$generate_tags_local_path"
+else
+  eval "$docker_command bash -s --" < "$generate_tags_local_path"
+fi
